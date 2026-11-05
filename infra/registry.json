@@ -1,0 +1,32 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Container registry bootstrap for warehouse intake",
+  "Resources": {
+    "Repository": {
+      "Type": "AWS::ECR::Repository",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "ImageTagMutability": "IMMUTABLE",
+        "ImageScanningConfiguration": {
+          "ScanOnPush": true
+        },
+        "EncryptionConfiguration": {
+          "EncryptionType": "AES256"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "RepositoryUri": {
+      "Value": {
+        "Fn::GetAtt": ["Repository", "RepositoryUri"]
+      }
+    },
+    "RepositoryArn": {
+      "Value": {
+        "Fn::GetAtt": ["Repository", "Arn"]
+      }
+    }
+  }
+}

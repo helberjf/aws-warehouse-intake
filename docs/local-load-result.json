@@ -1,0 +1,27 @@
+{
+  "runId": "52b72d53-b73d-4ebc-95ea-d726fe715394",
+  "environment": "http://localhost:3000",
+  "recordedAt": "2026-11-05T03:54:44.345Z",
+  "movements": 2000,
+  "physicalUnits": 101000,
+  "httpReplays": 200,
+  "concurrency": 10,
+  "acceptedSeconds": 57.9376495,
+  "totalSeconds": 164.0580938,
+  "acceptedMovementsPerSecond": 34.51986777613406,
+  "acceptanceLatencyMs": {
+    "p50": 249.1175000000003,
+    "p95": 394.92520000000013,
+    "p99": 483.63299999999435
+  },
+  "allApplied": true,
+  "expectedStock": {
+    "WH-01": 80800,
+    "WH-02": 20200
+  },
+  "actualStock": {
+    "WH-01": 80800,
+    "WH-02": 20200
+  },
+  "note": "Synthetic test against the named endpoint; local emulation does not establish AWS production capacity or cost. Use an isolated DEMO catalog without concurrent unrelated serialized receipts."
+}

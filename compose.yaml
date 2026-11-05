@@ -1,0 +1,90 @@
+name: warehouse-intake
+x-application: &application
+  build: .
+  image: warehouse-intake:local
+  init: true
+  read_only: true
+  tmpfs:
+    - /tmp
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  stop_grace_period: 120s
+  environment: &environment
+    ENVIRONMENT: local
+    AWS_REGION: us-east-1
+    AWS_ACCESS_KEY_ID: test
+    AWS_SECRET_ACCESS_KEY: test
+    AWS_ENDPOINT_URL: http://localstack:4566
+    TABLE_NAME: warehouse-local
+    QUEUE_NAME: warehouse-local
+    QUEUE_URL: http://localstack:4566/000000000000/warehouse-local
+    JWT_ISSUER: warehouse-local
+    JWT_AUDIENCE: warehouse-api
+    LOCAL_JWT_SECRET: local-development-only-not-for-production-12345
+
+services:
+  localstack:
+    image: localstack/localstack:4.12.0
+    ports:
+      - '127.0.0.1:4566:4566'
+    environment:
+      SERVICES: dynamodb,sqs
+      AWS_DEFAULT_REGION: us-east-1
+      SQS_ENDPOINT_STRATEGY: 'off'
+      LOCALSTACK_HOST: localstack:4566
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4566/_localstack/health']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  setup:
+    <<: *application
+    command: ['npm', 'run', 'local:setup']
+    depends_on:
+      localstack:
+        condition: service_healthy
+
+  api:
+    <<: *application
+    environment:
+      <<: *environment
+      SERVICE_ROLE: api
+      HOST: 0.0.0.0
+      PORT: '3000'
+    ports:
+      - '127.0.0.1:3000:3000'
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  publisher:
+    <<: *application
+    environment:
+      <<: *environment
+      SERVICE_ROLE: publisher
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+
+  worker:
+    <<: *application
+    environment:
+      <<: *environment
+      SERVICE_ROLE: worker
+    depends_on:
+      setup:
+        condition: service_completed_successfully

@@ -1,4 +1,4 @@
-# Receiving contracts and proposed DynamoDB model
+# Receiving contracts and DynamoDB model
 
 ## Identity and boundaries
 
@@ -6,7 +6,7 @@ An organization owns warehouses and its SKU catalog. The API derives organizatio
 
 One `externalReference` names one physical receiving movement in an organization/warehouse/producer namespace. It can encode a delivery line and partial-receipt sequence. The reference is required for both modes. A new HTTP idempotency key must not permit recording the same physical movement twice.
 
-The helper hashes JSON arrays to avoid ambiguous delimiter concatenation. SKU and serial identifiers are case sensitive after trimming. `occurredAt` is a client-reported UTC timestamp; the eventual API also records its own acceptance time and must not treat the client timestamp as authoritative audit time.
+The helper hashes JSON arrays to avoid ambiguous delimiter concatenation. SKU and serial identifiers are case sensitive after trimming. `occurredAt` is a client-reported UTC timestamp; the API also records its own acceptance time and must not treat the client timestamp as authoritative audit time.
 
 ## Request contracts
 
@@ -18,12 +18,12 @@ The helper hashes JSON arrays to avoid ambiguous delimiter concatenation. SKU an
 
 The generated [schema](../schemas/receiving-entry.schema.json) describes the body shape. Cross-record authorization and product-catalog checks remain server responsibilities and cannot be expressed by that body schema alone.
 
-## Proposed access patterns
+## Access patterns
 
 | Record              | Primary key                                                            | Access pattern and retention                                                               |
 | ------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | Receiving ledger    | `entryId = SHA256(org, warehouse, producer, externalReference)`        | Consistent lookup and conditional final transition; retain business deduplication identity |
-| HTTP idempotency    | `SHA256(org, warehouse, producer, Idempotency-Key)`                    | Original acceptance response and request hash; temporary retention with logical expiry     |
+| HTTP idempotency    | `SHA256(org, warehouse, producer, Idempotency-Key)`                    | Original acceptance response and request hash; retained identity without automatic expiry  |
 | Outbox              | `ReceivingAccepted:<entryId>`                                          | Direct read/update; sparse GSI on versioned pending shard and due timestamp                |
 | Stock balance       | Partition: `SHA256(org, warehouse, sku)`; sort: canonical lot identity | Atomic addition per SKU/lot; query lots for a SKU; no TTL                                  |
 | Serialized unit     | `SHA256(org, sku, serialNumber)`                                       | Conditional uniqueness across warehouses within one organization; no TTL                   |
@@ -32,7 +32,7 @@ The generated [schema](../schemas/receiving-entry.schema.json) describes the bod
 
 Define a canonical sentinel for “no lot” that cannot collide with a real lot value; a tagged tuple such as `['NO_LOT']` versus `['LOT', lotCode]` can be hashed. Do not put an entire day's products or all warehouse stock into one growing DynamoDB item.
 
-For history, use an organization/warehouse/time-bucket index and pagination. Index results are eventually consistent; direct entry status reads can be consistent. History and reporting are separate from the write-critical path. Measure the most active SKU/lot before choosing balance sharding: sharding spreads writes but makes exact aggregate reads more expensive. [AWS partition-key guidance](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html).
+History uses an organization/warehouse index partition with acceptance time plus entry ID as its sort key and bounded pagination. Time buckets are a future migration for larger reporting workloads. Index results are eventually consistent; direct entry status reads can be consistent. History and reporting are separate from the write-critical path. Measure the most active SKU/lot before choosing balance sharding: sharding spreads writes but makes exact aggregate reads more expensive. [AWS partition-key guidance](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html).
 
 ## Transaction boundaries
 
@@ -42,7 +42,7 @@ Acceptance transaction:
 2. Conditionally put the HTTP replay record.
 3. Put the deterministic outbox intent.
 
-On conflict, compare existing hashes and scope: identical requests replay the original entry; changed data under the same key/reference returns `409`. Business reference protection outlives temporary HTTP replay records. Apply warehouse/catalog eligibility checks at the chosen transactional boundary and define how deactivation affects already accepted entries.
+On conflict, compare existing hashes and scope: identical requests replay the original entry; changed data under the same key/reference returns `409`. Business reference protection outlives temporary HTTP replay records. The transaction condition-checks active warehouse/catalog state and tracking mode. Deactivation blocks new movements; already accepted work remains eligible for replay and completion.
 
 Application transaction:
 
@@ -57,3 +57,7 @@ These writes must commit together. Never acknowledge a queue message merely beca
 Archive large audit details only while retaining compact business deduplication identities and the necessary serialized-unit history. Deleting those identities can make old replays look new. Outbox TTL is for successfully published records only; balances have no expiry.
 
 At 100,000 individual movements/day, a year can contain about 36.5 million ledger entries before retries or indexes. Define audit, archival and replay horizons from business needs, not by copying a short TTL from a demonstration project. A reconciliation job should compare ledger-derived received quantities with balances using controlled exports or projections, rather than request-time scans.
+
+## Physical layout
+
+All records share one on-demand table with string keys `pk` and `sk`. Singleton records use `sk=META` and typed partition prefixes ENTRY, IDEMPOTENCY, OUTBOX, PRODUCT, WAREHOUSE or UNIT. Balances partition by hashed organization/warehouse/SKU and sort by a hashed tagged lot identity. `history-index` uses `historyPK/historySK`; `due-index` uses `duePK/dueSK`. Due shards are fixed at 16, version 1; lease and due deadlines are checked conditionally. Only published outbox rows receive numeric `expiresAt` TTL, seven days after publication. The actual key functions live in [the storage adapter](../src/storage/dynamo-store.ts).

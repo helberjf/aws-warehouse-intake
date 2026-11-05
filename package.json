@@ -1,9 +1,9 @@
 {
   "name": "aws-warehouse-intake",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Multi-warehouse receiving contracts and capacity planning for a DynamoDB, SQS and ECS/Fargate architecture without Lambda",
+  "description": "Multi-warehouse receiving API and container workers with DynamoDB and SQS, without Lambda",
   "repository": "https://github.com/helberjf/aws-warehouse-intake",
   "engines": {
     "node": ">=24 <25"
@@ -16,9 +16,20 @@
     "format:check": "prettier --check .",
     "schema:write": "node scripts/export-schema.ts --write",
     "schema:check": "node scripts/export-schema.ts",
-    "capacity": "node scripts/capacity.ts"
+    "capacity": "node scripts/capacity.ts",
+    "start": "node src/main.ts",
+    "local:setup": "node scripts/local-setup.ts",
+    "local:token": "node --env-file=.env scripts/local-token.ts",
+    "test:integration": "node --test --test-concurrency=1 integration/*.test.ts",
+    "test:load": "node --env-file=.env scripts/load-test.ts",
+    "reconcile": "node --env-file=.env scripts/reconcile.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.1162.0",
+    "@aws-sdk/client-sqs": "^3.1162.0",
+    "@aws-sdk/lib-dynamodb": "^3.1162.0",
+    "fastify": "^5.12.8",
+    "jose": "^6.2.15",
     "zod": "^4.6.7"
   },
   "devDependencies": {

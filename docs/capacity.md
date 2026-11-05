@@ -40,3 +40,11 @@ For backlog recovery, a sustained processing capacity `mu` must exceed the arriv
 The architecture has a running-cost floor: API, publisher and worker tasks consume CPU/memory while running, and the load balancer, network, observability and data storage are additional cost drivers. SQS Standard/fair-queue requests, DynamoDB transactions/indexes and empty polling must be included. Choose region and availability requirements before estimating a monthly budget; no numeric AWS cost is assumed here. [Fargate pricing](https://aws.amazon.com/fargate/pricing/), [SQS pricing](https://aws.amazon.com/sqs/pricing/), [DynamoDB pricing](https://aws.amazon.com/dynamodb/pricing/), [load-balancer pricing](https://aws.amazon.com/elasticloadbalancing/pricing/).
 
 Task count should come from measured processing duration and per-task concurrency under realistic contention. Production resilience and a low-cost lab have different minimum counts. Creating this repository provisions no AWS resources and proves no production throughput.
+
+## Executable load and reconciliation
+
+Start the local Compose stack, copy `.env.example` to `.env`, then run `npm run test:load -- --count 1000 --concurrency 10`. The runner uses a unique synthetic run identity, 50% serialized and 50% bulk movements of 100units, two warehouses with 80/20 distribution, and 10% extra HTTP replays. It waits for every movement and checks exact balances. These are closed-loop concurrent requests, not a constant-rate arrival generator; reported acceptance throughput includes replay overhead.
+
+For an isolated AWS benchmark, provide `LOAD_TEST_TOKEN` for the DEMO catalog, set `.env` appropriately, and explicitly use `--url https://your-test-host --allow-remote`. The runner never creates resources and rejects a remote target without that explicit flag. The count option supports 100,000 and larger runs. Run only with synthetic data and no concurrent unrelated serialized receipts, since stock reconciliation compares before/after totals.
+
+Recorded local evidence is kept in [validation](validation.md). The longer proposed profiles above remain deployment qualification targets.
