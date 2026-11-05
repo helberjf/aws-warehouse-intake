@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.aws/
+.deploy/
+.tokens/
+coverage/
+dist/
+*.log
+.DS_Store
+Thumbs.db

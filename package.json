@@ -1,0 +1,29 @@
+{
+  "name": "aws-warehouse-intake",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Multi-warehouse receiving contracts and capacity planning for a DynamoDB, SQS and ECS/Fargate architecture without Lambda",
+  "repository": "https://github.com/helberjf/aws-warehouse-intake",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "check": "npm run typecheck && npm run format:check && npm test && npm run schema:check",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "schema:write": "node scripts/export-schema.ts --write",
+    "schema:check": "node scripts/export-schema.ts",
+    "capacity": "node scripts/capacity.ts"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "prettier": "^3.6.2",
+    "typescript": "~5.9.3"
+  }
+}

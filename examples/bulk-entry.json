@@ -1,0 +1,8 @@
+{
+  "mode": "BULK",
+  "skuId": "SKU-BOX-01",
+  "quantity": 100,
+  "lotCode": "DEMO-LOT-001",
+  "externalReference": "DEMO-DELIVERY-002-LINE-01-PART-01",
+  "occurredAt": "2026-11-04T12:00:00.000Z"
+}
