@@ -1,0 +1,147 @@
+{
+  "runId": "08cb8d3b-73ed-4ed6-bcec-af9cf7461ab7",
+  "startedAt": "2026-11-05T06:16:22.933Z",
+  "finishedAt": "2026-11-05T06:17:21.512Z",
+  "userStopped": true,
+  "lastCheckpointConfirmed": 66164,
+  "persistedReceipts": 66350,
+  "appliedDuringHistoryRead": 9538,
+  "pendingDuringHistoryRead": 56812,
+  "rejectedDuringHistoryRead": 0,
+  "stockAfterHistoryRead": 9550,
+  "identityOperatorQuantityOrStockMismatches": 0,
+  "missingIndicesWithinObservedRange": 0,
+  "maximumObservedIndex": 66349,
+  "perWarehouse": [
+    {
+      "warehouseId": "WH-01",
+      "persisted": 4147,
+      "appliedObserved": 597,
+      "pendingObserved": 3550,
+      "rejectedObserved": 0,
+      "stockAfterHistory": 597
+    },
+    {
+      "warehouseId": "WH-02",
+      "persisted": 4147,
+      "appliedObserved": 580,
+      "pendingObserved": 3567,
+      "rejectedObserved": 0,
+      "stockAfterHistory": 580
+    },
+    {
+      "warehouseId": "WH-03",
+      "persisted": 4147,
+      "appliedObserved": 593,
+      "pendingObserved": 3554,
+      "rejectedObserved": 0,
+      "stockAfterHistory": 595
+    },
+    {
+      "warehouseId": "WH-04",
+      "persisted": 4147,
+      "appliedObserved": 591,
+      "pendingObserved": 3556,
+      "rejectedObserved": 0,
+      "stockAfterHistory": 592
+    },
+    {
+      "warehouseId": "WH-05",
+      "persisted": 4147,
+      "appliedObserved": 595,
+      "pendingObserved": 3552,
+      "rejectedObserved": 0,
+      "stockAfterHistory": 595
+    },
+    {
+      "warehouseId": "WH-06",
+      "persisted": 4147,
+      "appliedObserved": 597,
+      "pendingObserved": 3550,
+      "rejectedObserved": 0,
+      "stockAfterHistory": 598
+    },
+    {
+      "warehouseId": "WH-07",
+      "persisted": 4147,
+      "appliedObserved": 590,
+      "pendingObserved": 3557,
+      "rejectedObserved": 0,
+      "stockAfterHistory": 590
+    },
+    {
+      "warehouseId": "WH-08",
+      "persisted": 4147,
+      "appliedObserved": 597,
+      "pendingObserved": 3550,
+      "rejectedObserved": 0,
+      "stockAfterHistory": 597
+    },
+    {
+      "warehouseId": "WH-09",
+      "persisted": 4147,
+      "appliedObserved": 605,
+      "pendingObserved": 3542,
+      "rejectedObserved": 0,
+      "stockAfterHistory": 605
+    },
+    {
+      "warehouseId": "WH-10",
+      "persisted": 4147,
+      "appliedObserved": 595,
+      "pendingObserved": 3552,
+      "rejectedObserved": 0,
+      "stockAfterHistory": 597
+    },
+    {
+      "warehouseId": "WH-11",
+      "persisted": 4147,
+      "appliedObserved": 591,
+      "pendingObserved": 3556,
+      "rejectedObserved": 0,
+      "stockAfterHistory": 593
+    },
+    {
+      "warehouseId": "WH-12",
+      "persisted": 4147,
+      "appliedObserved": 603,
+      "pendingObserved": 3544,
+      "rejectedObserved": 0,
+      "stockAfterHistory": 604
+    },
+    {
+      "warehouseId": "WH-13",
+      "persisted": 4147,
+      "appliedObserved": 594,
+      "pendingObserved": 3553,
+      "rejectedObserved": 0,
+      "stockAfterHistory": 594
+    },
+    {
+      "warehouseId": "WH-14",
+      "persisted": 4147,
+      "appliedObserved": 605,
+      "pendingObserved": 3542,
+      "rejectedObserved": 0,
+      "stockAfterHistory": 606
+    },
+    {
+      "warehouseId": "WH-15",
+      "persisted": 4146,
+      "appliedObserved": 601,
+      "pendingObserved": 3545,
+      "rejectedObserved": 0,
+      "stockAfterHistory": 602
+    },
+    {
+      "warehouseId": "WH-16",
+      "persisted": 4146,
+      "appliedObserved": 604,
+      "pendingObserved": 3542,
+      "rejectedObserved": 0,
+      "stockAfterHistory": 605
+    }
+  ],
+  "fullTargetCompleted": false,
+  "note": "Read-only observation after user stopped generation. Workers remain active, so status counts and later strongly consistent stocks are not one atomic snapshot. The source checkpoint is a lower bound on confirmed HTTP acknowledgments. This is not a full100000-movement pass or a final stock reconciliation."
+}

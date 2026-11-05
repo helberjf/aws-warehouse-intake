@@ -4,6 +4,8 @@
 
 The [dedicated load report](load-16-warehouses.md) records the authenticated browser HTTP workload and its independent outbox/unit audit. Its individual-package counts must not be confused with the older mixed bulk/serialized reference below.
 
+The 1,200-package browser workload passed at four arrivals/second, with all sixteen balances and 2,400 outbox/unit records verified. The subsequent 100,000-package saturation attempt was stopped by the user: the last checkpoint confirmed 66,164 HTTP acknowledgments; a post-stop read found 66,350 persisted records with no identity/operator/quantity mismatches, but most were still awaiting processing. This attempt is explicitly incomplete and does not establish the full daily target or AWS production capacity.
+
 ## Web console 1.1 validation — 2026-11-05
 
 - 65 unit/API/security/reconciliation tests passed.

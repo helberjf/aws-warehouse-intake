@@ -1,0 +1,260 @@
+{
+  "schemaVersion": 1,
+  "runId": "08cb8d3b-73ed-4ed6-bcec-af9cf7461ab7",
+  "organizationId": "LOAD-08cb8d3b-73ed-4ed6-bcec-af9cf7461ab7",
+  "skuId": "PACKAGE-08cb8d3b",
+  "producerId": "warehouse-load",
+  "warehouseIds": [
+    "WH-01",
+    "WH-02",
+    "WH-03",
+    "WH-04",
+    "WH-05",
+    "WH-06",
+    "WH-07",
+    "WH-08",
+    "WH-09",
+    "WH-10",
+    "WH-11",
+    "WH-12",
+    "WH-13",
+    "WH-14",
+    "WH-15",
+    "WH-16"
+  ],
+  "startedAt": "2026-11-05T05:35:19.690Z",
+  "updatedAt": "2026-11-05T06:14:35.699Z",
+  "phase": "submitting",
+  "environment": {
+    "api": "http://localhost:3000",
+    "awsEndpoint": "http://localhost:4566",
+    "tableName": "warehouse-local",
+    "localOnly": true
+  },
+  "profile": {
+    "count": 100000,
+    "concurrency": 32,
+    "rate": 0,
+    "warehouses": 16,
+    "distribution": "even",
+    "workflow": "receiving",
+    "drainTimeout": 14400,
+    "physicalUnitsPerMovement": 1,
+    "trackingMode": "SERIALIZED",
+    "oneSkuPerRun": true,
+    "auth": "real HTTP password login, HttpOnly session cookie and CSRF",
+    "workflowDetail": "Authenticated receiving POST plus one exact HTTP replay per100 scheduled receipts",
+    "scheduler": "Closed-loop bounded concurrency"
+  },
+  "counts": {
+    "target": 100000,
+    "launched": 66196,
+    "accepted": 66164,
+    "failed": 0,
+    "failureEvents": 0,
+    "completedTasks": 66164,
+    "duplicateProbes": 662,
+    "httpRetries": 0,
+    "droppedCapacity": 0,
+    "droppedSchedule": 0,
+    "notLaunched": 33804,
+    "observedStock": 0,
+    "verifiedApplied": 0,
+    "rejected": 0,
+    "verificationErrors": 0,
+    "historyPages": 0
+  },
+  "timing": {
+    "elapsedSeconds": 2356.0055203000006,
+    "acceptanceSeconds": 2354.9197587999997,
+    "acceptanceRate": 28.09607408182574,
+    "submissionEndedAt": null,
+    "processingFinishedAt": null,
+    "processingSeconds": null,
+    "drainObservedSeconds": null,
+    "verificationSeconds": null
+  },
+  "perWarehouse": [
+    {
+      "warehouseId": "WH-01",
+      "launched": 4138,
+      "accepted": 4136,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 0,
+      "actualStock": 0,
+      "expectedStock": 4136
+    },
+    {
+      "warehouseId": "WH-02",
+      "launched": 4138,
+      "accepted": 4136,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 0,
+      "actualStock": 0,
+      "expectedStock": 4136
+    },
+    {
+      "warehouseId": "WH-03",
+      "launched": 4138,
+      "accepted": 4136,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 0,
+      "actualStock": 0,
+      "expectedStock": 4136
+    },
+    {
+      "warehouseId": "WH-04",
+      "launched": 4138,
+      "accepted": 4136,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 0,
+      "actualStock": 0,
+      "expectedStock": 4136
+    },
+    {
+      "warehouseId": "WH-05",
+      "launched": 4137,
+      "accepted": 4135,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 0,
+      "actualStock": 0,
+      "expectedStock": 4135
+    },
+    {
+      "warehouseId": "WH-06",
+      "launched": 4137,
+      "accepted": 4135,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 0,
+      "actualStock": 0,
+      "expectedStock": 4135
+    },
+    {
+      "warehouseId": "WH-07",
+      "launched": 4137,
+      "accepted": 4135,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 0,
+      "actualStock": 0,
+      "expectedStock": 4135
+    },
+    {
+      "warehouseId": "WH-08",
+      "launched": 4137,
+      "accepted": 4135,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 0,
+      "actualStock": 0,
+      "expectedStock": 4135
+    },
+    {
+      "warehouseId": "WH-09",
+      "launched": 4137,
+      "accepted": 4135,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 0,
+      "actualStock": 0,
+      "expectedStock": 4135
+    },
+    {
+      "warehouseId": "WH-10",
+      "launched": 4137,
+      "accepted": 4135,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 0,
+      "actualStock": 0,
+      "expectedStock": 4135
+    },
+    {
+      "warehouseId": "WH-11",
+      "launched": 4137,
+      "accepted": 4135,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 0,
+      "actualStock": 0,
+      "expectedStock": 4135
+    },
+    {
+      "warehouseId": "WH-12",
+      "launched": 4137,
+      "accepted": 4135,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 0,
+      "actualStock": 0,
+      "expectedStock": 4135
+    },
+    {
+      "warehouseId": "WH-13",
+      "launched": 4137,
+      "accepted": 4135,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 0,
+      "actualStock": 0,
+      "expectedStock": 4135
+    },
+    {
+      "warehouseId": "WH-14",
+      "launched": 4137,
+      "accepted": 4135,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 0,
+      "actualStock": 0,
+      "expectedStock": 4135
+    },
+    {
+      "warehouseId": "WH-15",
+      "launched": 4137,
+      "accepted": 4135,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 0,
+      "actualStock": 0,
+      "expectedStock": 4135
+    },
+    {
+      "warehouseId": "WH-16",
+      "launched": 4137,
+      "accepted": 4135,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 0,
+      "actualStock": 0,
+      "expectedStock": 4135
+    }
+  ],
+  "requestCounts": {
+    "login": 1,
+    "receiving": 66196,
+    "duplicate": 662
+  },
+  "attemptStatuses": {
+    "202": 66826
+  },
+  "failures": [],
+  "failureSamplesTruncated": false,
+  "outcome": {
+    "complete": false,
+    "allApplied": false,
+    "targetMet": false,
+    "interrupted": false
+  },
+  "limitations": [
+    "Local emulation and a load driver on the same host do not establish AWS production capacity or cost.",
+    "GSI history is checked after consistent stock reaches the expected total; missing/stale entries receive bounded consistent status reads.",
+    "HTTP failures are retried with the exact original body, reference and idempotency key; exhausted retries stop new submissions and leave a partial report."
+  ]
+}

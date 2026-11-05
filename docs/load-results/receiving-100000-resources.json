@@ -1,0 +1,28 @@
+{
+  "samples": 75,
+  "startedAt": "2026-11-05T05:35:25.021Z",
+  "endedAt": "2026-11-05T06:15:11.172Z",
+  "containers": {
+    "warehouse-intake-api-1": {
+      "maxCpuPercent": 40.2,
+      "maxMemoryMiB": 227.2
+    },
+    "warehouse-intake-worker-1": {
+      "maxCpuPercent": 7.05,
+      "maxMemoryMiB": 174.6
+    },
+    "warehouse-intake-publisher-1": {
+      "maxCpuPercent": 4.54,
+      "maxMemoryMiB": 193.3
+    },
+    "warehouse-intake-localstack-1": {
+      "maxCpuPercent": 189.39,
+      "maxMemoryMiB": 982.4
+    }
+  },
+  "maxQueueVisible": 9,
+  "maxQueueInFlight": 9,
+  "maxDeadLetterVisible": 0,
+  "observationErrors": 0,
+  "note": "Samples approximately every32seconds. CPU100percent means one logicalcore, not the entire16-CPU DockerVM. Sampled maxima can miss shorter peaks; queue values are approximate."
+}

@@ -1,0 +1,36 @@
+{
+  "reason": "User requested ending the load test before the target completed.",
+  "sourceCheckpointUpdatedAt": "2026-11-05T06:14:35.699Z",
+  "lastCheckpointPhase": "submitting",
+  "lastCheckpointCounts": {
+    "target": 100000,
+    "launched": 66196,
+    "accepted": 66164,
+    "failed": 0,
+    "failureEvents": 0,
+    "completedTasks": 66164,
+    "duplicateProbes": 662,
+    "httpRetries": 0,
+    "droppedCapacity": 0,
+    "droppedSchedule": 0,
+    "notLaunched": 33804,
+    "observedStock": 0,
+    "verifiedApplied": 0,
+    "rejected": 0,
+    "verificationErrors": 0,
+    "historyPages": 0
+  },
+  "lastCheckpointTiming": {
+    "elapsedSeconds": 2356.0055203000006,
+    "acceptanceSeconds": 2354.9197587999997,
+    "acceptanceRate": 28.09607408182574,
+    "submissionEndedAt": null,
+    "processingFinishedAt": null,
+    "processingSeconds": null,
+    "drainObservedSeconds": null,
+    "verificationSeconds": null
+  },
+  "completionConfirmed": false,
+  "note": "Ctrl+C stopped the load process. The retained file is its last checkpoint, not a completed run. In-flight requests may have committed after that checkpoint. Application services continue processing already accepted entries.",
+  "stopObservedAt": "2026-11-05T06:15:11.757Z"
+}
