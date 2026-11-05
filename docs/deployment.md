@@ -7,8 +7,8 @@ The repository runs locally with containers and can deploy the same image as thr
 Install Docker Compose and Node.js 24.19.0, then run:
 
 ```sh
-cp .env.example .env
 npm ci
+npm run local:configure
 npm run check
 docker compose up -d --build
 docker compose ps
@@ -33,7 +33,7 @@ Provision or select these resources in the same AWS account and Region before cr
 - An existing VPC with DNS support, at least two public subnets and two private subnets in different Availability Zones.
 - A public route to an internet gateway for the ALB. Private tasks need outbound HTTPS through NAT or the appropriate VPC endpoints. ECR API/Docker, S3 image layers, CloudWatch Logs, DynamoDB and SQS must be reachable. The API must also reach the identity provider's JWKS endpoint; private AWS endpoints alone do not provide that external route.
 - A domain name and a validated ACM certificate covering that domain. Create a DNS alias to the stack's load balancer after deployment and access the API using the certificate's hostname.
-- A trusted JWT identity provider with HTTPS issuer and JWKS endpoint. It must issue the documented organization, producer, warehouse and role claims. Assign these claims server-side; warehouse operators must not be able to grant themselves access.
+- For optional machine bearer authentication, a trusted JWT identity provider with HTTPS issuer and JWKS endpoint. It must issue the documented organization, producer, warehouse and role claims. Assign these claims server-side; warehouse operators must not be able to grant themselves access.
 - An optional existing SNS topic for alarms, with subscriptions configured by the operator.
 - An IAM deployment principal permitted to create the declared resources and pass only the six task/execution roles in this stack. Application services themselves do not receive deployment permissions.
 
@@ -69,7 +69,7 @@ Create a local parameter file outside version control, using the following keys:
 | `PublicSubnetIds`, `PrivateSubnetIds`    | Comma-separated subnet IDs in separate Availability Zones    |
 | `CertificateArn`                         | Validated ACM certificate ARN                                |
 | `ImageUri`, `RepositoryArn`              | Immutable image digest URI and its ECR repository ARN        |
-| `JwtIssuer`, `JwtAudience`, `JwtJwksUrl` | Trusted identity-provider configuration                      |
+| `JwtIssuer`, `JwtAudience`, `JwtJwksUrl` | Optional provider configuration (all three or none)          |
 | `AlarmTopicArn`                          | Existing SNS topic ARN, or an empty string                   |
 | `ApiMinTasks`, `ApiMaxTasks`             | Defaults 2 and 10; maximum must be at least minimum          |
 | `WorkerMinTasks`, `WorkerMaxTasks`       | Defaults 2 and 20; maximum must be at least minimum          |
@@ -113,3 +113,7 @@ Messages move to the DLQ after five receives. First fix the underlying fault, in
 DynamoDB point-in-time recovery is enabled. A restore creates a new table. Reconcile ledger, balances, unit registry and pending outbox together before moving traffic to a restored table; reverting data while keeping an independently advanced queue can reintroduce historical deliveries. Exercise this procedure in a separate environment and document the recovery point.
 
 JWT keys rotate through the provider's JWKS endpoint. The application uses task roles, so AWS access keys are absent from ECS configuration. Restrict administrator tokens, rotate identity-provider credentials through that provider, and keep authentication headers out of logs.
+
+## Browser login and upgrades
+
+Set `PublicOrigin` to the exact HTTPS origin served by your certificate, for example `https://warehouse.example.com`, with no trailing slash. The browser login uses securely provisioned accounts and opaque HttpOnly sessions. JWT parameters may all be empty for browser-only operation. Provision the first administrator using the stdin-only account tool with a private operator role; no default cloud user/password is created. See [browser setup, security and legacy index migration](browser.md). Existing tables need the two new indexes added in separate updates and a scoped metadata backfill before enabling browser catalog/stock listings.

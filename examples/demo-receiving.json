@@ -1,0 +1,652 @@
+{
+  "synthetic": true,
+  "organizationId": "DEMO",
+  "producerId": "demo-seed-v1",
+  "notice": "Stable synthetic movements. Re-run unchanged to replay without adding stock twice.",
+  "warehouses": [
+    {
+      "warehouseId": "WH-01",
+      "name": "Galpão São Paulo",
+      "active": true
+    },
+    {
+      "warehouseId": "WH-02",
+      "name": "Galpão Campinas",
+      "active": true
+    },
+    {
+      "warehouseId": "WH-03",
+      "name": "Galpão Rio de Janeiro",
+      "active": true
+    },
+    {
+      "warehouseId": "WH-04",
+      "name": "Galpão Belo Horizonte",
+      "active": true
+    },
+    {
+      "warehouseId": "WH-05",
+      "name": "Galpão Curitiba",
+      "active": true
+    },
+    {
+      "warehouseId": "WH-06",
+      "name": "Galpão Porto Alegre",
+      "active": true
+    },
+    {
+      "warehouseId": "WH-07",
+      "name": "Galpão Florianópolis",
+      "active": true
+    },
+    {
+      "warehouseId": "WH-08",
+      "name": "Galpão Brasília",
+      "active": true
+    },
+    {
+      "warehouseId": "WH-09",
+      "name": "Galpão Goiânia",
+      "active": true
+    },
+    {
+      "warehouseId": "WH-10",
+      "name": "Galpão Salvador",
+      "active": true
+    },
+    {
+      "warehouseId": "WH-11",
+      "name": "Galpão Recife",
+      "active": true
+    },
+    {
+      "warehouseId": "WH-12",
+      "name": "Galpão Fortaleza",
+      "active": true
+    },
+    {
+      "warehouseId": "WH-13",
+      "name": "Galpão Belém",
+      "active": true
+    },
+    {
+      "warehouseId": "WH-14",
+      "name": "Galpão Manaus",
+      "active": true
+    },
+    {
+      "warehouseId": "WH-15",
+      "name": "Galpão Cuiabá",
+      "active": true
+    },
+    {
+      "warehouseId": "WH-16",
+      "name": "Galpão Vitória",
+      "active": true
+    }
+  ],
+  "entries": [
+    {
+      "warehouseId": "WH-01",
+      "idempotencyKey": "demo-v1-WH-01-bulk-1",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-CAIXA",
+        "quantity": 10,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-01-bulk-1",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-01",
+      "idempotencyKey": "demo-v1-WH-01-bulk-2",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-CADERNO",
+        "quantity": 5,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-01-bulk-2",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-01",
+      "idempotencyKey": "demo-v1-WH-01-serial",
+      "entry": {
+        "mode": "SERIALIZED",
+        "skuId": "DEMO-FONE",
+        "serialNumber": "DEMO-V1-WH-01-DEMO-FONE",
+        "externalReference": "demo-v1-WH-01-serial",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-02",
+      "idempotencyKey": "demo-v1-WH-02-bulk-1",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-CADERNO",
+        "quantity": 10,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-02-bulk-1",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-02",
+      "idempotencyKey": "demo-v1-WH-02-bulk-2",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-GARRAFA",
+        "quantity": 5,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-02-bulk-2",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-02",
+      "idempotencyKey": "demo-v1-WH-02-serial",
+      "entry": {
+        "mode": "SERIALIZED",
+        "skuId": "DEMO-COLETOR",
+        "serialNumber": "DEMO-V1-WH-02-DEMO-COLETOR",
+        "externalReference": "demo-v1-WH-02-serial",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-03",
+      "idempotencyKey": "demo-v1-WH-03-bulk-1",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-GARRAFA",
+        "quantity": 10,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-03-bulk-1",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-03",
+      "idempotencyKey": "demo-v1-WH-03-bulk-2",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-CABO",
+        "quantity": 5,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-03-bulk-2",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-03",
+      "idempotencyKey": "demo-v1-WH-03-serial",
+      "entry": {
+        "mode": "SERIALIZED",
+        "skuId": "DEMO-FONE",
+        "serialNumber": "DEMO-V1-WH-03-DEMO-FONE",
+        "externalReference": "demo-v1-WH-03-serial",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-04",
+      "idempotencyKey": "demo-v1-WH-04-bulk-1",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-CABO",
+        "quantity": 10,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-04-bulk-1",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-04",
+      "idempotencyKey": "demo-v1-WH-04-bulk-2",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-FERRAMENTAS",
+        "quantity": 5,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-04-bulk-2",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-04",
+      "idempotencyKey": "demo-v1-WH-04-serial",
+      "entry": {
+        "mode": "SERIALIZED",
+        "skuId": "DEMO-COLETOR",
+        "serialNumber": "DEMO-V1-WH-04-DEMO-COLETOR",
+        "externalReference": "demo-v1-WH-04-serial",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-05",
+      "idempotencyKey": "demo-v1-WH-05-bulk-1",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-FERRAMENTAS",
+        "quantity": 10,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-05-bulk-1",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-05",
+      "idempotencyKey": "demo-v1-WH-05-bulk-2",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-ENVELOPE",
+        "quantity": 5,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-05-bulk-2",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-05",
+      "idempotencyKey": "demo-v1-WH-05-serial",
+      "entry": {
+        "mode": "SERIALIZED",
+        "skuId": "DEMO-FONE",
+        "serialNumber": "DEMO-V1-WH-05-DEMO-FONE",
+        "externalReference": "demo-v1-WH-05-serial",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-06",
+      "idempotencyKey": "demo-v1-WH-06-bulk-1",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-ENVELOPE",
+        "quantity": 10,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-06-bulk-1",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-06",
+      "idempotencyKey": "demo-v1-WH-06-bulk-2",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-CAIXA",
+        "quantity": 5,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-06-bulk-2",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-06",
+      "idempotencyKey": "demo-v1-WH-06-serial",
+      "entry": {
+        "mode": "SERIALIZED",
+        "skuId": "DEMO-COLETOR",
+        "serialNumber": "DEMO-V1-WH-06-DEMO-COLETOR",
+        "externalReference": "demo-v1-WH-06-serial",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-07",
+      "idempotencyKey": "demo-v1-WH-07-bulk-1",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-CAIXA",
+        "quantity": 10,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-07-bulk-1",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-07",
+      "idempotencyKey": "demo-v1-WH-07-bulk-2",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-CADERNO",
+        "quantity": 5,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-07-bulk-2",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-07",
+      "idempotencyKey": "demo-v1-WH-07-serial",
+      "entry": {
+        "mode": "SERIALIZED",
+        "skuId": "DEMO-FONE",
+        "serialNumber": "DEMO-V1-WH-07-DEMO-FONE",
+        "externalReference": "demo-v1-WH-07-serial",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-08",
+      "idempotencyKey": "demo-v1-WH-08-bulk-1",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-CADERNO",
+        "quantity": 10,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-08-bulk-1",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-08",
+      "idempotencyKey": "demo-v1-WH-08-bulk-2",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-GARRAFA",
+        "quantity": 5,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-08-bulk-2",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-08",
+      "idempotencyKey": "demo-v1-WH-08-serial",
+      "entry": {
+        "mode": "SERIALIZED",
+        "skuId": "DEMO-COLETOR",
+        "serialNumber": "DEMO-V1-WH-08-DEMO-COLETOR",
+        "externalReference": "demo-v1-WH-08-serial",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-09",
+      "idempotencyKey": "demo-v1-WH-09-bulk-1",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-GARRAFA",
+        "quantity": 10,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-09-bulk-1",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-09",
+      "idempotencyKey": "demo-v1-WH-09-bulk-2",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-CABO",
+        "quantity": 5,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-09-bulk-2",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-09",
+      "idempotencyKey": "demo-v1-WH-09-serial",
+      "entry": {
+        "mode": "SERIALIZED",
+        "skuId": "DEMO-FONE",
+        "serialNumber": "DEMO-V1-WH-09-DEMO-FONE",
+        "externalReference": "demo-v1-WH-09-serial",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-10",
+      "idempotencyKey": "demo-v1-WH-10-bulk-1",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-CABO",
+        "quantity": 10,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-10-bulk-1",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-10",
+      "idempotencyKey": "demo-v1-WH-10-bulk-2",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-FERRAMENTAS",
+        "quantity": 5,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-10-bulk-2",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-10",
+      "idempotencyKey": "demo-v1-WH-10-serial",
+      "entry": {
+        "mode": "SERIALIZED",
+        "skuId": "DEMO-COLETOR",
+        "serialNumber": "DEMO-V1-WH-10-DEMO-COLETOR",
+        "externalReference": "demo-v1-WH-10-serial",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-11",
+      "idempotencyKey": "demo-v1-WH-11-bulk-1",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-FERRAMENTAS",
+        "quantity": 10,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-11-bulk-1",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-11",
+      "idempotencyKey": "demo-v1-WH-11-bulk-2",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-ENVELOPE",
+        "quantity": 5,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-11-bulk-2",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-11",
+      "idempotencyKey": "demo-v1-WH-11-serial",
+      "entry": {
+        "mode": "SERIALIZED",
+        "skuId": "DEMO-FONE",
+        "serialNumber": "DEMO-V1-WH-11-DEMO-FONE",
+        "externalReference": "demo-v1-WH-11-serial",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-12",
+      "idempotencyKey": "demo-v1-WH-12-bulk-1",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-ENVELOPE",
+        "quantity": 10,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-12-bulk-1",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-12",
+      "idempotencyKey": "demo-v1-WH-12-bulk-2",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-CAIXA",
+        "quantity": 5,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-12-bulk-2",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-12",
+      "idempotencyKey": "demo-v1-WH-12-serial",
+      "entry": {
+        "mode": "SERIALIZED",
+        "skuId": "DEMO-COLETOR",
+        "serialNumber": "DEMO-V1-WH-12-DEMO-COLETOR",
+        "externalReference": "demo-v1-WH-12-serial",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-13",
+      "idempotencyKey": "demo-v1-WH-13-bulk-1",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-CAIXA",
+        "quantity": 10,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-13-bulk-1",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-13",
+      "idempotencyKey": "demo-v1-WH-13-bulk-2",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-CADERNO",
+        "quantity": 5,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-13-bulk-2",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-13",
+      "idempotencyKey": "demo-v1-WH-13-serial",
+      "entry": {
+        "mode": "SERIALIZED",
+        "skuId": "DEMO-FONE",
+        "serialNumber": "DEMO-V1-WH-13-DEMO-FONE",
+        "externalReference": "demo-v1-WH-13-serial",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-14",
+      "idempotencyKey": "demo-v1-WH-14-bulk-1",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-CADERNO",
+        "quantity": 10,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-14-bulk-1",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-14",
+      "idempotencyKey": "demo-v1-WH-14-bulk-2",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-GARRAFA",
+        "quantity": 5,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-14-bulk-2",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-14",
+      "idempotencyKey": "demo-v1-WH-14-serial",
+      "entry": {
+        "mode": "SERIALIZED",
+        "skuId": "DEMO-COLETOR",
+        "serialNumber": "DEMO-V1-WH-14-DEMO-COLETOR",
+        "externalReference": "demo-v1-WH-14-serial",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-15",
+      "idempotencyKey": "demo-v1-WH-15-bulk-1",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-GARRAFA",
+        "quantity": 10,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-15-bulk-1",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-15",
+      "idempotencyKey": "demo-v1-WH-15-bulk-2",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-CABO",
+        "quantity": 5,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-15-bulk-2",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-15",
+      "idempotencyKey": "demo-v1-WH-15-serial",
+      "entry": {
+        "mode": "SERIALIZED",
+        "skuId": "DEMO-FONE",
+        "serialNumber": "DEMO-V1-WH-15-DEMO-FONE",
+        "externalReference": "demo-v1-WH-15-serial",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-16",
+      "idempotencyKey": "demo-v1-WH-16-bulk-1",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-CABO",
+        "quantity": 10,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-16-bulk-1",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-16",
+      "idempotencyKey": "demo-v1-WH-16-bulk-2",
+      "entry": {
+        "mode": "BULK",
+        "skuId": "DEMO-FERRAMENTAS",
+        "quantity": 5,
+        "lotCode": "LOTE-DEMO-V1",
+        "externalReference": "demo-v1-WH-16-bulk-2",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    },
+    {
+      "warehouseId": "WH-16",
+      "idempotencyKey": "demo-v1-WH-16-serial",
+      "entry": {
+        "mode": "SERIALIZED",
+        "skuId": "DEMO-COLETOR",
+        "serialNumber": "DEMO-V1-WH-16-DEMO-COLETOR",
+        "externalReference": "demo-v1-WH-16-serial",
+        "occurredAt": "2026-11-05T12:00:00Z"
+      }
+    }
+  ],
+  "expectedUnitsPerWarehouse": 16,
+  "totalPhysicalUnits": 256
+}

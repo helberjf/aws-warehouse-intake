@@ -33,15 +33,17 @@
     },
     "JwtIssuer": {
       "Type": "String",
-      "AllowedPattern": "https://.+"
+      "AllowedPattern": "(^$|https://.+)",
+      "Default": ""
     },
     "JwtAudience": {
       "Type": "String",
-      "MinLength": 1
+      "Default": ""
     },
     "JwtJwksUrl": {
       "Type": "String",
-      "AllowedPattern": "https://.+"
+      "AllowedPattern": "(^$|https://.+)",
+      "Default": ""
     },
     "ApiMinTasks": {
       "Type": "Number",
@@ -78,6 +80,11 @@
       "Default": "",
       "AllowedPattern": "(^$|arn:aws[a-z-]*:sns:[a-z0-9-]+:[0-9]{12}:.+)",
       "Description": "Optional existing SNS topic for alarm notifications; alarm state still recorded if empty"
+    },
+    "PublicOrigin": {
+      "Type": "String",
+      "AllowedPattern": "https://[^/]+",
+      "Description": "Exact HTTPS browser origin, for example https://warehouse.example.com"
     }
   },
   "Conditions": {
@@ -87,6 +94,18 @@
           "Fn::Equals": [
             {
               "Ref": "AlarmTopicArn"
+            },
+            ""
+          ]
+        }
+      ]
+    },
+    "UseBearerJwt": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "JwtIssuer"
             },
             ""
           ]
@@ -122,6 +141,22 @@
           },
           {
             "AttributeName": "historySK",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "catalogPK",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "catalogSK",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "stockPK",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "stockSK",
             "AttributeType": "S"
           }
         ],
@@ -161,6 +196,38 @@
               },
               {
                 "AttributeName": "historySK",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "catalog-index",
+            "KeySchema": [
+              {
+                "AttributeName": "catalogPK",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "catalogSK",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "stock-index",
+            "KeySchema": [
+              {
+                "AttributeName": "stockPK",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "stockSK",
                 "KeyType": "RANGE"
               }
             ],
@@ -543,6 +610,18 @@
                       "Fn::Sub": "${Table.Arn}/index/*"
                     }
                   ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": ["dynamodb:DeleteItem"],
+                  "Resource": {
+                    "Fn::GetAtt": ["Table", "Arn"]
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": ["SESSION#*", "CODE#*"]
+                    }
+                  }
                 }
               ]
             }
@@ -613,21 +692,51 @@
                 "Value": "3000"
               },
               {
-                "Name": "JWT_ISSUER",
-                "Value": {
-                  "Ref": "JwtIssuer"
-                }
+                "Fn::If": [
+                  "UseBearerJwt",
+                  {
+                    "Name": "JWT_ISSUER",
+                    "Value": {
+                      "Ref": "JwtIssuer"
+                    }
+                  },
+                  {
+                    "Ref": "AWS::NoValue"
+                  }
+                ]
               },
               {
-                "Name": "JWT_AUDIENCE",
-                "Value": {
-                  "Ref": "JwtAudience"
-                }
+                "Fn::If": [
+                  "UseBearerJwt",
+                  {
+                    "Name": "JWT_AUDIENCE",
+                    "Value": {
+                      "Ref": "JwtAudience"
+                    }
+                  },
+                  {
+                    "Ref": "AWS::NoValue"
+                  }
+                ]
               },
               {
-                "Name": "JWT_JWKS_URL",
+                "Fn::If": [
+                  "UseBearerJwt",
+                  {
+                    "Name": "JWT_JWKS_URL",
+                    "Value": {
+                      "Ref": "JwtJwksUrl"
+                    }
+                  },
+                  {
+                    "Ref": "AWS::NoValue"
+                  }
+                ]
+              },
+              {
+                "Name": "PUBLIC_ORIGIN",
                 "Value": {
-                  "Ref": "JwtJwksUrl"
+                  "Ref": "PublicOrigin"
                 }
               }
             ],
@@ -1555,6 +1664,87 @@
       "Value": {
         "Fn::GetAtt": ["WorkerService", "Name"]
       }
+    }
+  },
+  "Rules": {
+    "CompleteJwtConfiguration": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Or": [
+              {
+                "Fn::And": [
+                  {
+                    "Fn::Equals": [
+                      {
+                        "Ref": "JwtIssuer"
+                      },
+                      ""
+                    ]
+                  },
+                  {
+                    "Fn::Equals": [
+                      {
+                        "Ref": "JwtAudience"
+                      },
+                      ""
+                    ]
+                  },
+                  {
+                    "Fn::Equals": [
+                      {
+                        "Ref": "JwtJwksUrl"
+                      },
+                      ""
+                    ]
+                  }
+                ]
+              },
+              {
+                "Fn::And": [
+                  {
+                    "Fn::Not": [
+                      {
+                        "Fn::Equals": [
+                          {
+                            "Ref": "JwtIssuer"
+                          },
+                          ""
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Fn::Not": [
+                      {
+                        "Fn::Equals": [
+                          {
+                            "Ref": "JwtAudience"
+                          },
+                          ""
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Fn::Not": [
+                      {
+                        "Fn::Equals": [
+                          {
+                            "Ref": "JwtJwksUrl"
+                          },
+                          ""
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "AssertDescription": "Configure all JWT settings or leave all three empty for browser-only authentication"
+        }
+      ]
     }
   }
 }

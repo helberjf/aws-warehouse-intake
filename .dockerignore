@@ -10,3 +10,7 @@ dist
 docs
 tests
 work
+test-results
+playwright-report
+.tokens
+e2e

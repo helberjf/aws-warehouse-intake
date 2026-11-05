@@ -5,6 +5,7 @@ const identifier = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/);
 export const principalSchema = z
   .object({
     subject: z.string().min(1).max(256),
+    displayName: z.string().trim().min(1).max(128).optional(),
     organizationId: identifier,
     producerId: identifier,
     warehouseIds: z.array(identifier).max(1000),
@@ -66,6 +67,7 @@ export function createAuthenticator(config: AuthConfig): Authenticator {
       }
       return principalSchema.parse({
         subject: payload.sub,
+        ...(typeof payload.name === 'string' ? { displayName: payload.name } : {}),
         organizationId: payload.organizationId,
         producerId: payload.producerId,
         warehouseIds: payload.warehouseIds,

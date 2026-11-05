@@ -61,3 +61,9 @@ At 100,000 individual movements/day, a year can contain about 36.5 million ledge
 ## Physical layout
 
 All records share one on-demand table with string keys `pk` and `sk`. Singleton records use `sk=META` and typed partition prefixes ENTRY, IDEMPOTENCY, OUTBOX, PRODUCT, WAREHOUSE or UNIT. Balances partition by hashed organization/warehouse/SKU and sort by a hashed tagged lot identity. `history-index` uses `historyPK/historySK`; `due-index` uses `duePK/dueSK`. Due shards are fixed at 16, version 1; lease and due deadlines are checked conditionally. Only published outbox rows receive numeric `expiresAt` TTL, seven days after publication. The actual key functions live in [the storage adapter](../src/storage/dynamo-store.ts).
+
+## Browser catalog and identity records
+
+`catalog-index` uses `catalogPK/catalogSK` for organization catalog pages. `stock-index` uses `stockPK/stockSK` for per-warehouse balances; these lists are eventually consistent. Product SKU and barcode aliases share an organization-scoped unique CODE namespace. Revision conditions preserve the original creator/time across concurrent edits. Incoming requests cannot choose audit identities. Legacy records retain missing attribution rather than inventing a creator.
+
+USER records contain a salted scrypt password hash and server-managed grants. SESSION records contain hashed opaque token identities, CSRF tokens and logical expiration; LOGIN records limit attempts across API replicas. Session and throttle rows use TTL for cleanup and explicit expiration checks for security. Business deduplication, stock and serial registrations never rely on this short authentication retention. See [browser security and migration](browser.md).

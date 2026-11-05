@@ -1,0 +1,111 @@
+{
+  "checkedOn": "2026-11-05",
+  "region": "sa-east-1",
+  "currency": "USD",
+  "sourcePublicationTimes": {
+    "AmazonECS": "2026-10-19T22:43:17Z",
+    "AmazonDynamoDB": "2026-11-04T00:07:05Z",
+    "AWSQueueService": "2026-09-11T12:46:07Z",
+    "AWSELB": "2026-11-02T10:25:27Z",
+    "AmazonVPC": "2026-11-03T00:09:47Z",
+    "AmazonCloudWatch": "2026-11-04T21:35:32Z",
+    "AmazonECR": "2026-09-11T12:44:25Z",
+    "AWSDataTransfer": "2026-11-03T13:31:47Z",
+    "AmazonEC2": "2026-11-04T21:03:05Z"
+  },
+  "rates": {
+    "fargateVcpuHour": {
+      "usd": 0.0696,
+      "unit": "vCPU-hour",
+      "sku": "WYZ4CHTNFEXBJ2QA",
+      "service": "AmazonECS"
+    },
+    "fargateMemoryGbHour": {
+      "usd": 0.0076,
+      "unit": "GB-hour",
+      "sku": "W7C6ESVS5UQVWHF7",
+      "service": "AmazonECS"
+    },
+    "albHour": { "usd": 0.034, "unit": "hour", "sku": "4AJP3GA9ECKSCY5M", "service": "AWSELB" },
+    "albLcuHour": { "usd": 0.011, "unit": "LCU-hour", "sku": "57V3ETTKU499QBWM", "service": "AWSELB" },
+    "dynamoWrite": {
+      "usd": 0.0000009375,
+      "unit": "WRU",
+      "sku": "GM69RJT49WH6GV53",
+      "service": "AmazonDynamoDB"
+    },
+    "dynamoRead": {
+      "usd": 0.0000001875,
+      "unit": "RRU",
+      "sku": "FP32PMXZGT2VFUMA",
+      "service": "AmazonDynamoDB"
+    },
+    "dynamoStorageGbMonth": {
+      "usd": 0.375,
+      "unit": "GB-month",
+      "sku": "XFGEC4CX3KPPC6Z8",
+      "service": "AmazonDynamoDB"
+    },
+    "dynamoPitrGbMonth": {
+      "usd": 0.3,
+      "unit": "GB-month",
+      "sku": "TEJVZ9S6V2NZMM5D",
+      "service": "AmazonDynamoDB"
+    },
+    "sqsStandardRequest": {
+      "usd": 0.0000004,
+      "unit": "request",
+      "sku": "PAHYVTQK8UZB4C9Q",
+      "service": "AWSQueueService"
+    },
+    "sqsFairRequest": {
+      "usd": 0.0000001,
+      "unit": "request",
+      "sku": "F4PFR6JZYQ8WDNY4",
+      "service": "AWSQueueService"
+    },
+    "natHour": { "usd": 0.093, "unit": "gateway-hour", "sku": "N3JNXFX89DVACZ9Q", "service": "AmazonEC2" },
+    "natGb": { "usd": 0.093, "unit": "GB", "sku": "SCEJ72FQAGUB53MY", "service": "AmazonEC2" },
+    "publicIpv4Hour": {
+      "usd": 0.005,
+      "unit": "address-hour",
+      "sku": "VMVKZDCCHU2PXGFV",
+      "service": "AmazonVPC"
+    },
+    "logIngestGb": { "usd": 0.9, "unit": "GB", "sku": "AW4EB5RGNN8S75Q8", "service": "AmazonCloudWatch" },
+    "logStorageGbMonth": {
+      "usd": 0.0408,
+      "unit": "GB-month",
+      "sku": "A2U5G2V8PAN8BBGE",
+      "service": "AmazonCloudWatch"
+    },
+    "customMetricMonth": {
+      "usd": 0.3,
+      "unit": "metric-month",
+      "sku": "69U4T5WYC2VZMA9G",
+      "service": "AmazonCloudWatch"
+    },
+    "alarmMetricMonth": {
+      "usd": 0.135,
+      "unit": "alarm-metric-month",
+      "sku": "H7K9WCM7G7GJWU8G",
+      "service": "AmazonCloudWatch"
+    },
+    "logsQueryGb": {
+      "usd": 0.009,
+      "unit": "GB scanned",
+      "sku": "9TF8V986QDFUWDHB",
+      "service": "AmazonCloudWatch"
+    },
+    "ecrStorageGbMonth": {
+      "usd": 0.1,
+      "unit": "GB-month",
+      "sku": "YSAK2DW4UV6S5Y7U",
+      "service": "AmazonECR"
+    },
+    "internetEgressGb": { "usd": 0.15, "unit": "GB", "sku": "QKTPK3975YUWDU3Q", "service": "AWSDataTransfer" }
+  },
+  "sourceTemplate": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/{service}/current/sa-east-1/index.json",
+  "natSource": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/sa-east-1/index.csv",
+  "notes": "Public on-demand list prices, Linux x86 Fargate and DynamoDB Standard. No free-tier credits, Savings Plans, taxes, support plan or exchange-rate assumptions. Free storage/request/data-transfer allowances may lower actual invoices when available. Refresh rates before financial commitment."
+}

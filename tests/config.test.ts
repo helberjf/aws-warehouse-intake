@@ -15,3 +15,24 @@ test('API requires explicit authentication configuration', () => {
   assert.throws(() => loadConfig({ ...base, SERVICE_ROLE: 'api' }));
   assert.throws(() => loadConfig({ ...base, PORT: '0' }));
 });
+test('browser-only production uses a trusted HTTPS origin without requiring an external JWT provider', () => {
+  assert.equal(
+    loadConfig({ ...base, SERVICE_ROLE: 'api', PUBLIC_ORIGIN: 'https://warehouse.example.com' })
+      .PUBLIC_ORIGIN,
+    'https://warehouse.example.com',
+  );
+  assert.throws(() =>
+    loadConfig({ ...base, SERVICE_ROLE: 'api', PUBLIC_ORIGIN: 'http://warehouse.example.com' }),
+  );
+  assert.throws(() =>
+    loadConfig({ ...base, SERVICE_ROLE: 'api', PUBLIC_ORIGIN: 'https://warehouse.example.com/path' }),
+  );
+  assert.throws(() =>
+    loadConfig({
+      ...base,
+      SERVICE_ROLE: 'api',
+      PUBLIC_ORIGIN: 'https://warehouse.example.com',
+      JWT_ISSUER: 'https://issuer.example.com',
+    }),
+  );
+});

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#142c34" />
+    <meta name="description" content="Cadastro de produtos, recebimento e estoque de cada galpão." />
+    <title>Armazém · Gestão de recebimentos</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Pular para o conteúdo</a>
+    <div id="app">
+      <main id="main" class="boot" aria-busy="true">
+        <span class="brand-mark">A</span>
+        <p>Preparando seu armazém…</p>
+      </main>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    <dialog id="camera-dialog" aria-labelledby="camera-title">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">LEITURA DE PRODUTO</p>
+          <h2 id="camera-title">Aponte para o código de barras</h2>
+        </div>
+        <button class="icon-button" id="camera-close" aria-label="Fechar câmera" type="button">×</button>
+      </div>
+      <div class="camera-stage">
+        <video
+          id="camera-video"
+          autoplay
+          muted
+          playsinline
+          aria-label="Imagem da câmera para leitura"
+        ></video>
+        <div class="scan-frame" aria-hidden="true"></div>
+      </div>
+      <p id="camera-message" class="muted" role="status">
+        A câmera só é usada durante a leitura. Nenhuma imagem é enviada.
+      </p>
+      <button id="camera-cancel" class="button button-secondary" type="button">Voltar à digitação</button>
+    </dialog>
+  </body>
+</html>

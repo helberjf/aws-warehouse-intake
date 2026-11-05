@@ -1,6 +1,6 @@
 # API and authentication
 
-The [OpenAPI 3.1 contract](../schemas/openapi.json) is served by `GET /openapi.json`. All business routes require `Authorization: Bearer <token>`. Public routes are `/health`, `/ready` and `/openapi.json`.
+The [OpenAPI 3.1 contract](../schemas/openapi.json) is served by `GET /openapi.json`. Business routes accept a verified browser session or `Authorization: Bearer <token>`. Browser mutations require the trusted Origin and session X-CSRF-Token. See [browser authentication](browser.md). Public routes are `/health`, `/ready` and `/openapi.json`.
 
 | Method and path                                             | Behavior                                                       |
 | ----------------------------------------------------------- | -------------------------------------------------------------- |
@@ -15,7 +15,7 @@ Lists accept `limit`1..100 (default 50) and the opaque `cursor` returned by the 
 
 ## Identity-provider contract
 
-Production requires `ENVIRONMENT=production`, `JWT_ISSUER`, `JWT_AUDIENCE` and HTTPS `JWT_JWKS_URL`. Tokens must use RS256 and contain `sub`, `iat`, `exp`, the configured issuer/audience and custom claims:
+For optional machine bearer authentication, production requires `ENVIRONMENT=production`, `JWT_ISSUER`, `JWT_AUDIENCE` and HTTPS `JWT_JWKS_URL`. Tokens must use RS256 and contain `sub`, `iat`, `exp`, the configured issuer/audience and custom claims:
 
 ```json
 {
@@ -28,7 +28,7 @@ Production requires `ENVIRONMENT=production`, `JWT_ISSUER`, `JWT_AUDIENCE` and H
 
 Use `roles:["admin"]` for administration. Both roles may read and receive within their warehouse grants. Admin does not grant wildcard access. The identity provider must control these claims; they must not be self-editable profile fields. Provision warehouse grants before administrator registration.
 
-`producerId` is a stable logical source shared by retries across devices; `sub` identifies the token holder. The current immutable movement records the producer namespace, not an individual operator audit trail.
+`producerId` is a stable logical source shared by retries across devices; `sub` identifies the token holder. The movement records the producer namespace and the original authenticated operator in `recordedBy`. Product records retain `createdBy`/`createdAt` and the last `updatedBy`/`updatedAt`; request bodies cannot set these audit fields.
 
 The verifier checks signature, algorithm, issuer, audience, expiration and principal shape with five seconds of clock tolerance. Caller-supplied key URLs are ignored. Use short token lifetimes: already issued JWTs retain their claims until expiration unless signing-key removal and verifier cache refresh invalidate them.
 

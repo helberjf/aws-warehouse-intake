@@ -2,12 +2,18 @@
   "openapi": "3.1.0",
   "info": {
     "title": "AWS Warehouse Intake API",
-    "version": "1.0.0",
-    "description": "Multi-warehouse receiving with individually serialized units and bulk quantities. JWT claims: sub, iat, exp, organizationId, producerId, warehouseIds and roles (receiving/admin). Warehouse access is explicit, including for administrators. A 202 response confirms durable acceptance; poll status until APPLIED or REJECTED. List results use an eventually consistent index. Idempotency-Key and externalReference must stay stable across retries."
+    "version": "1.1.0",
+    "description": "Warehouse browser and API with password sessions, product registration, barcode lookup, actor attribution and asynchronous receiving. Browser sessions use HttpOnly cookies plus same-origin/CSRF validation for mutations. Optional configured RS256 JWTs remain available for machine integrations. Warehouse access is explicit, including for administrators. A 202 confirms durable acceptance; poll until APPLIED or REJECTED. Preserve Idempotency-Key and externalReference across retries."
   },
   "security": [
     {
       "bearerAuth": []
+    },
+    {
+      "browserSession": []
+    },
+    {
+      "localBrowserSession": []
     }
   ],
   "paths": {
@@ -49,7 +55,7 @@
     },
     "/products/{skuId}": {
       "put": {
-        "summary": "Create/update product (admin); tracking mode is immutable",
+        "summary": "Create/update product as administrator; preserve original creator",
         "parameters": [
           {
             "name": "skuId",
@@ -76,6 +82,17 @@
                   },
                   "active": {
                     "type": "boolean"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "barcode": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "pattern": "^[\\x21-\\x7E]+$"
                   }
                 }
               }
@@ -88,20 +105,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "skuId": {
-                      "type": "string",
-                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
-                    },
-                    "trackingMode": {
-                      "type": "string",
-                      "enum": ["SERIALIZED", "BULK"]
-                    },
-                    "active": {
-                      "type": "boolean"
-                    }
-                  }
+                  "$ref": "#/components/schemas/Product"
                 }
               }
             }
@@ -186,7 +190,21 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "browserSession": [],
+            "csrfToken": []
+          },
+          {
+            "localBrowserSession": [],
+            "csrfToken": []
+          }
+        ],
+        "description": "Browser cookie requests require X-CSRF-Token and an Origin equal to PUBLIC_ORIGIN. Bearer-token integrations do not use CSRF cookies. SKU and barcode share one unique namespace within the organization. Barcode replacement is atomic; tracking mode is immutable. Ownership and creator audit fields are assigned by the server and rejected in request bodies."
       }
     },
     "/warehouses/{warehouseId}": {
@@ -330,7 +348,21 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "browserSession": [],
+            "csrfToken": []
+          },
+          {
+            "localBrowserSession": [],
+            "csrfToken": []
+          }
+        ],
+        "description": "Browser cookie requests require X-CSRF-Token and an Origin equal to PUBLIC_ORIGIN. Bearer-token integrations do not use CSRF cookies."
       }
     },
     "/warehouses/{warehouseId}/receiving-entries": {
@@ -465,7 +497,21 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "browserSession": [],
+            "csrfToken": []
+          },
+          {
+            "localBrowserSession": [],
+            "csrfToken": []
+          }
+        ],
+        "description": "Browser cookie requests require X-CSRF-Token and an Origin equal to PUBLIC_ORIGIN. Bearer-token integrations do not use CSRF cookies."
       },
       "get": {
         "summary": "List receiving history with an opaque continuation cursor",
@@ -887,6 +933,892 @@
           }
         }
       }
+    },
+    "/products": {
+      "get": {
+        "summary": "List organization catalog with pagination",
+        "description": "Uses an eventually consistent catalog index. Legacy records require metadata backfill before appearing.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 2048,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Organization products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["items"],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Product"
+                      }
+                    },
+                    "cursor": {
+                      "type": "string",
+                      "description": "Absent when no further page exists."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/lookup": {
+      "get": {
+        "summary": "Resolve a product barcode or SKU",
+        "description": "Codes are case sensitive and scoped to the authenticated organization. The result includes tracking mode and registration actor.",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/warehouses": {
+      "get": {
+        "summary": "List registered warehouses granted to the authenticated user",
+        "description": "Only existing warehouse records from the verified warehouseIds membership are returned; inactive records remain visible.",
+        "responses": {
+          "200": {
+            "description": "Accessible warehouse directory",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["items"],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Warehouse"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/warehouses/{warehouseId}/stock": {
+      "get": {
+        "summary": "List stock for all SKUs/lots in one warehouse",
+        "description": "Uses an eventually consistent warehouse stock index. Use /stock/{skuId} for consistent direct SKU balances.",
+        "parameters": [
+          {
+            "name": "warehouseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 2048,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Warehouse stock",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["items"],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Balance"
+                      }
+                    },
+                    "cursor": {
+                      "type": "string",
+                      "description": "Absent when no further page exists."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "security": [],
+        "summary": "Sign in with organization, username and password",
+        "description": "Username is trimmed and lowercased. Five attempts per account and thirty per IP are allowed within 15 minutes, including successful attempts. Credentials are verified against salted scrypt hashes. No public account signup.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TrustedOrigin"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["organizationId", "username", "password"],
+                "properties": {
+                  "organizationId": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+                  },
+                  "username": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 64,
+                    "description": "Normalized to lowercase; letters, numbers, dot, underscore, at-sign, plus and hyphen."
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "writeOnly": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authenticated browser session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserSession"
+                }
+              }
+            },
+            "headers": {
+              "Set-Cookie": {
+                "description": "Opaque eight-hour session. Production uses __Host-warehouse_session with Secure, HttpOnly, SameSite=Strict and Path=/.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Attempt limit reached; wait before retrying",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitError"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string",
+                  "const": "900"
+                },
+                "description": "Seconds before retrying."
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/session": {
+      "get": {
+        "security": [
+          {
+            "browserSession": []
+          },
+          {
+            "localBrowserSession": []
+          }
+        ],
+        "summary": "Read the current browser session and CSRF token",
+        "description": "Session expiry and current account credential version/active state are checked on every request.",
+        "responses": {
+          "200": {
+            "description": "Current browser identity and CSRF token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserSession"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "security": [
+          {
+            "browserSession": [],
+            "csrfToken": []
+          },
+          {
+            "localBrowserSession": [],
+            "csrfToken": []
+          }
+        ],
+        "summary": "Revoke the current session and sign out",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TrustedOrigin"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Session revoked",
+            "headers": {
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Session cookie is expired using Max-Age=0."
+              }
+            }
+          },
+          "401": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/password": {
+      "post": {
+        "security": [
+          {
+            "browserSession": [],
+            "csrfToken": []
+          },
+          {
+            "localBrowserSession": [],
+            "csrfToken": []
+          }
+        ],
+        "summary": "Change password and revoke all prior sessions",
+        "description": "Requires the current password. Five attempts per account within 15 minutes. A successful change rotates credentialVersion and requires a new login.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TrustedOrigin"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["currentPassword", "newPassword"],
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "writeOnly": true
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 12,
+                    "maxLength": 128,
+                    "writeOnly": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Password replaced; all older sessions invalidated",
+            "headers": {
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Session cookie is expired using Max-Age=0."
+              }
+            }
+          },
+          "400": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Request rejected; error code and requestId identify the failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Attempt limit reached; wait before retrying",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitError"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string",
+                  "const": "900"
+                },
+                "description": "Seconds before retrying."
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -895,6 +1827,24 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT"
+      },
+      "browserSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__Host-warehouse_session",
+        "description": "Production opaque HttpOnly Secure SameSite=Strict cookie. Issued by /auth/login; never copied into browser storage."
+      },
+      "localBrowserSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "warehouse_session",
+        "description": "Local development session cookie; production uses browserSession."
+      },
+      "csrfToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-CSRF-Token",
+        "description": "Required for mutations authenticated by a browser cookie; obtained from /auth/login or /auth/session."
       }
     },
     "schemas": {
@@ -1008,6 +1958,10 @@
           },
           "rejectionReason": {
             "type": "string"
+          },
+          "recordedBy": {
+            "$ref": "#/components/schemas/Actor",
+            "description": "Verified actor for the original acceptance, preserved on replay. Absent on historical records accepted before actor capture."
           }
         }
       },
@@ -1030,6 +1984,191 @@
           "requestId": {
             "type": "string"
           }
+        }
+      },
+      "Actor": {
+        "type": "object",
+        "required": ["subject"],
+        "additionalProperties": false,
+        "properties": {
+          "subject": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "displayName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "required": ["skuId", "trackingMode", "active"],
+        "additionalProperties": false,
+        "properties": {
+          "skuId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "barcode": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[\\x21-\\x7E]+$"
+          },
+          "trackingMode": {
+            "type": "string",
+            "enum": ["SERIALIZED", "BULK"]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/Actor",
+            "description": "Original verified actor. Absent for unattributed legacy records."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedBy": {
+            "$ref": "#/components/schemas/Actor"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Warehouse": {
+        "type": "object",
+        "required": ["warehouseId", "name", "active"],
+        "properties": {
+          "warehouseId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SessionUser": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["subject", "displayName", "organizationId", "producerId", "warehouseIds", "roles"],
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "organizationId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+          },
+          "producerId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+          },
+          "warehouseIds": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+            }
+          },
+          "roles": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 2,
+            "items": {
+              "type": "string",
+              "enum": ["receiving", "admin"]
+            }
+          }
+        }
+      },
+      "BrowserSession": {
+        "type": "object",
+        "required": ["user", "csrfToken", "expiresAt"],
+        "additionalProperties": false,
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/SessionUser"
+          },
+          "csrfToken": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{43}$"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RateLimitError": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": ["code", "message"],
+            "properties": {
+              "code": {
+                "type": "string",
+                "const": "RATE_LIMITED"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Balance": {
+        "type": "object",
+        "required": ["skuId", "quantity"],
+        "properties": {
+          "skuId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "lotCode": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "parameters": {
+      "TrustedOrigin": {
+        "name": "Origin",
+        "in": "header",
+        "required": true,
+        "description": "Must equal configured PUBLIC_ORIGIN exactly. Browsers set this header; cross-origin login/mutations are rejected.",
+        "schema": {
+          "type": "string",
+          "format": "uri"
         }
       }
     }

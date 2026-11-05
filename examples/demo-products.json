@@ -1,0 +1,62 @@
+{
+  "synthetic": true,
+  "notice": "Synthetic test products and EAN13 codes; not assigned or registered with GS1.",
+  "products": [
+    {
+      "skuId": "DEMO-CAIXA",
+      "name": "Caixa organizadora 40 L",
+      "barcode": "7899000000010",
+      "trackingMode": "BULK",
+      "active": true
+    },
+    {
+      "skuId": "DEMO-CADERNO",
+      "name": "Caderno A5 pautado",
+      "barcode": "7899000000027",
+      "trackingMode": "BULK",
+      "active": true
+    },
+    {
+      "skuId": "DEMO-GARRAFA",
+      "name": "Garrafa térmica 750 ml",
+      "barcode": "7899000000034",
+      "trackingMode": "BULK",
+      "active": true
+    },
+    {
+      "skuId": "DEMO-CABO",
+      "name": "Cabo USB-C 1 m",
+      "barcode": "7899000000041",
+      "trackingMode": "BULK",
+      "active": true
+    },
+    {
+      "skuId": "DEMO-FERRAMENTAS",
+      "name": "Kit de ferramentas 12 peças",
+      "barcode": "7899000000058",
+      "trackingMode": "BULK",
+      "active": true
+    },
+    {
+      "skuId": "DEMO-ENVELOPE",
+      "name": "Envelope acolchoado",
+      "barcode": "7899000000065",
+      "trackingMode": "BULK",
+      "active": true
+    },
+    {
+      "skuId": "DEMO-FONE",
+      "name": "Fone Bluetooth",
+      "barcode": "7899000000072",
+      "trackingMode": "SERIALIZED",
+      "active": true
+    },
+    {
+      "skuId": "DEMO-COLETOR",
+      "name": "Coletor de dados",
+      "barcode": "7899000000089",
+      "trackingMode": "SERIALIZED",
+      "active": true
+    }
+  ]
+}

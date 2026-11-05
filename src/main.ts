@@ -3,7 +3,8 @@ import { loadConfig } from './config.ts';
 import { createClients } from './clients.ts';
 import { DynamoIntakeStore } from './storage/dynamo-store.ts';
 import { createApp } from './http/app.ts';
-import { createAuthenticator } from './http/auth.ts';
+import { createAuthenticator, AuthenticationError } from './http/auth.ts';
+import { IdentityService } from './identity/service.ts';
 import { runPublisher, runWorker } from './processing/queue.ts';
 
 const config = loadConfig();
@@ -31,13 +32,23 @@ try {
   if (config.SERVICE_ROLE === 'api') {
     const app = await createApp({
       store,
-      auth: createAuthenticator({
+      auth:
+        config.JWT_ISSUER && config.JWT_AUDIENCE
+          ? createAuthenticator({
+              environment: config.ENVIRONMENT,
+              issuer: config.JWT_ISSUER!,
+              audience: config.JWT_AUDIENCE!,
+              jwksUrl: config.JWT_JWKS_URL,
+              localSecret: config.LOCAL_JWT_SECRET,
+            })
+          : async () => {
+              throw new AuthenticationError('Bearer authentication is not configured');
+            },
+      sessions: {
+        service: new IdentityService(clients.document, config.TABLE_NAME),
         environment: config.ENVIRONMENT,
-        issuer: config.JWT_ISSUER!,
-        audience: config.JWT_AUDIENCE!,
-        jwksUrl: config.JWT_JWKS_URL,
-        localSecret: config.LOCAL_JWT_SECRET,
-      }),
+        publicOrigin: config.PUBLIC_ORIGIN!,
+      },
       ready: async () => {
         await clients.dynamo.send(new DescribeTableCommand({ TableName: config.TABLE_NAME }));
       },

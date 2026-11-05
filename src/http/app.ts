@@ -13,6 +13,9 @@ import {
   principalSchema,
 } from './auth.ts';
 import type { Authenticator, Principal } from './auth.ts';
+import { registerFrontend } from './frontend.ts';
+import { registerSessionRoutes } from '../identity/http.ts';
+import type { IdentityService } from '../identity/service.ts';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -45,6 +48,7 @@ function representation(entry: LedgerEntry) {
     acceptedAt: entry.acceptedAt,
     completedAt: entry.completedAt,
     rejectionReason: entry.rejectionReason,
+    recordedBy: entry.recordedBy,
   };
 }
 
@@ -53,18 +57,25 @@ export async function createApp(options: {
   auth: Authenticator;
   ready?: () => Promise<void>;
   logger?: boolean;
+  sessions?: { service: IdentityService; environment: 'local' | 'production'; publicOrigin: string };
 }) {
   const app = Fastify({
     logger:
       options.logger === false
         ? false
         : {
-            redact: ['req.headers.authorization', 'req.headers["idempotency-key"]'],
+            redact: [
+              'req.headers.authorization',
+              'req.headers.cookie',
+              'res.headers["set-cookie"]',
+              'req.headers["idempotency-key"]',
+            ],
           },
     bodyLimit: 16 * 1024,
     requestTimeout: 30_000,
     connectionTimeout: 10_000,
-    trustProxy: false,
+    trustProxy:
+      options.sessions?.environment === 'production' ? (_address: string, hop: number) => hop === 0 : false,
   });
   app.decorateRequest('principal');
   app.addHook('onSend', async (_request, reply, payload) => {
@@ -127,13 +138,23 @@ export async function createApp(options: {
   app.get('/openapi.json', async () =>
     JSON.parse(await readFile(new URL('../../schemas/openapi.json', import.meta.url), 'utf8')),
   );
+  registerFrontend(app);
+  const browser = options.sessions
+    ? await registerSessionRoutes(app, options.sessions.service, options.sessions)
+    : undefined;
   await app.register(async (api) => {
     api.addHook('onRequest', async (request) => {
       // Revalidate even injected adapters: tests cannot accidentally relax the principal shape.
       try {
-        request.principal = principalSchema.parse(await options.auth(request.headers.authorization));
-      } catch {
-        throw new AuthenticationError('Invalid credentials');
+        request.principal = principalSchema.parse(
+          browser?.hasSessionCookie(request)
+            ? await browser.authenticateBrowser(request)
+            : await options.auth(request.headers.authorization),
+        );
+      } catch (error) {
+        if (error instanceof AuthorizationError || error instanceof AuthenticationError) throw error;
+        if (error instanceof z.ZodError) throw new AuthenticationError('Invalid credentials');
+        throw error;
       }
     });
     function warehouse(request: FastifyRequest): string {
@@ -162,7 +183,10 @@ export async function createApp(options: {
         idempotencyKey,
         { skuId: product.skuId, trackingMode: product.trackingMode },
       );
-      const entry = await options.store.accept(prepared);
+      const entry = await options.store.accept({
+        ...prepared,
+        recordedBy: { subject: principal.subject, displayName: principal.displayName },
+      });
       return reply
         .code(202)
         .header('Location', `/warehouses/${warehouseId}/receiving-entries/${entry.entryId}`)
@@ -197,16 +221,56 @@ export async function createApp(options: {
       const { limit, cursor } = paging.parse(request.query);
       return options.store.getBalances(request.principal.organizationId, warehouseId, skuId, limit, cursor);
     });
+    api.get('/warehouses', async (request) => {
+      const records = await Promise.all(
+        request.principal.warehouseIds.map((id) =>
+          options.store.getWarehouse(request.principal.organizationId, id),
+        ),
+      );
+      return { items: records.filter((record) => record !== undefined) };
+    });
+    api.get('/products', async (request) => {
+      const { limit, cursor } = paging.parse(request.query);
+      return options.store.listProducts(request.principal.organizationId, limit, cursor);
+    });
+    api.get('/products/lookup', async (request) => {
+      const { code } = z
+        .object({ code: z.string().trim().min(1).max(128) })
+        .strict()
+        .parse(request.query);
+      const product = await options.store.findProductByCode(request.principal.organizationId, code);
+      if (!product) throw new NotFoundError();
+      return product;
+    });
+    api.get('/warehouses/:warehouseId/stock', async (request) => {
+      const id = warehouse(request);
+      const { limit, cursor } = paging.parse(request.query);
+      return options.store.listStock(request.principal.organizationId, id, limit, cursor);
+    });
     api.put('/products/:skuId', async (request) => {
       authorizeAdmin(request.principal);
       const { skuId } = z.object({ skuId: identifier }).parse(request.params);
       const body = z
-        .object({ trackingMode: z.enum(['SERIALIZED', 'BULK']), active: z.boolean() })
+        .object({
+          trackingMode: z.enum(['SERIALIZED', 'BULK']),
+          active: z.boolean(),
+          name: z.string().trim().min(1).max(128).optional(),
+          barcode: z
+            .string()
+            .trim()
+            .min(1)
+            .max(128)
+            .regex(/^[\x21-\x7E]+$/)
+            .optional(),
+        })
         .strict()
         .parse(request.body);
       const product = { skuId, ...body };
-      await options.store.putProduct(request.principal.organizationId, product);
-      return product;
+      await options.store.putProduct(request.principal.organizationId, product, {
+        subject: request.principal.subject,
+        displayName: request.principal.displayName,
+      });
+      return options.store.getProduct(request.principal.organizationId, skuId);
     });
     api.put('/warehouses/:warehouseId', async (request) => {
       authorizeAdmin(request.principal);

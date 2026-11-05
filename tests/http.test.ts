@@ -7,6 +7,7 @@ import { createAuthenticator } from '../src/http/auth.ts';
 import type { Principal } from '../src/http/auth.ts';
 import { ConflictError, EligibilityError } from '../src/application/ports.ts';
 import type { IntakeStore, LedgerEntry, Product, Warehouse } from '../src/application/ports.ts';
+import type { IdentityService } from '../src/identity/service.ts';
 
 const secret = 'local-test-signing-secret-at-least-32-bytes';
 const principal: Principal = {
@@ -53,6 +54,10 @@ function store() {
   const calls: unknown[][] = [];
   const implementation: IntakeStore = {
     getProduct: async (_org, sku) => products.get(sku),
+    listProducts: async () => ({ items: [...products.values()] }),
+    findProductByCode: async (_org, code) =>
+      products.get(code) ?? [...products.values()].find((product) => product.barcode === code),
+    listStock: async () => ({ items: [{ skuId: 'BOX', quantity: 20 }] }),
     putProduct: async (org, product) => {
       calls.push(['product', org, product]);
       products.set(product.skuId, product);
@@ -93,6 +98,64 @@ async function fixture(t: test.TestContext) {
   const headers = { authorization: `Bearer ${await token()}`, 'idempotency-key': 'attempt-1' };
   return { ...data, app, headers };
 }
+test('product and receiving attribution comes from verified identity, never caller audit fields', async (t) => {
+  const { app, implementation } = await fixture(t);
+  const headers = {
+    authorization: `Bearer ${await token({ roles: ['admin'], name: 'Ana Operadora' })}`,
+    'idempotency-key': 'actor-test',
+  };
+  let actor: unknown;
+  const original = implementation.putProduct;
+  implementation.putProduct = async (org, product, verified) => {
+    actor = verified;
+    await original(org, product, verified);
+  };
+  const product = await app.inject({
+    method: 'PUT',
+    url: '/products/AUDIT',
+    headers,
+    payload: { name: 'Produto auditado', barcode: '12345678', trackingMode: 'BULK', active: true },
+  });
+  assert.equal(product.statusCode, 200);
+  assert.deepEqual(actor, { subject: 'operator-1', displayName: 'Ana Operadora' });
+  const entry = await app.inject({
+    method: 'POST',
+    url: '/warehouses/WH-A/receiving-entries',
+    headers,
+    payload: body,
+  });
+  assert.deepEqual(entry.json().recordedBy, { subject: 'operator-1', displayName: 'Ana Operadora' });
+  const forged = await app.inject({
+    method: 'PUT',
+    url: '/products/AUDIT',
+    headers,
+    payload: { trackingMode: 'BULK', active: true, createdBy: { subject: 'someone-else' } },
+  });
+  assert.equal(forged.statusCode, 400);
+});
+test('session persistence outages return server errors rather than expiring valid browser credentials', async (t) => {
+  const app = await createApp({
+    store: store().implementation,
+    auth,
+    logger: false,
+    sessions: {
+      environment: 'local',
+      publicOrigin: 'http://localhost:3000',
+      service: {
+        authenticate: async () => {
+          throw new Error('storage unavailable');
+        },
+      } as unknown as IdentityService,
+    },
+  });
+  t.after(() => app.close());
+  const response = await app.inject({
+    url: '/products',
+    headers: { cookie: 'warehouse_session=opaque-session' },
+  });
+  assert.equal(response.statusCode, 500);
+  assert.equal(response.body.includes('storage unavailable'), false);
+});
 
 test('acceptance derives ownership from verified JWT and exposes status URL without internal hashes', async (t) => {
   const { app, headers, ledger } = await fixture(t);

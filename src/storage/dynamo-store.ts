@@ -11,6 +11,7 @@ import {
   ConflictError,
   EligibilityError,
   type Balance,
+  type Actor,
   type IntakeStore,
   type LedgerEntry,
   type Page,
@@ -27,6 +28,9 @@ export const keys = {
   idempotency: (id: string) => singleton(`IDEMPOTENCY#${id}`),
   outbox: (id: string) => singleton(`OUTBOX#${id}`),
   product: (org: string, sku: string) => singleton(`PRODUCT#${hash([org, sku])}`),
+  code: (org: string, code: string) => singleton(`CODE#${hash([org, code])}`),
+  catalog: (org: string) => `CATALOG#${hash([org])}`,
+  stock: (org: string, warehouse: string) => `STOCK#${hash([org, warehouse])}`,
   warehouse: (org: string, warehouse: string) => singleton(`WAREHOUSE#${hash([org, warehouse])}`),
   unit: (id: string) => singleton(`UNIT#${id}`),
   balance: (org: string, warehouse: string, sku: string, lot?: string) => ({
@@ -55,7 +59,7 @@ function pageCursor(key: Record<string, unknown> | undefined): string | undefine
 function decodeCursor(
   cursor: string | undefined,
   partition: string,
-  history: boolean,
+  index: boolean | 'catalog' | 'stock',
 ): Record<string, string> | undefined {
   if (!cursor) return undefined;
   try {
@@ -63,10 +67,11 @@ function decodeCursor(
     const value: unknown = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'));
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error();
     const key = value as Record<string, unknown>;
-    const fields = history ? ['pk', 'sk', 'historyPK', 'historySK'] : ['pk', 'sk'];
+    const prefix = index === true ? 'history' : index === false ? undefined : index;
+    const fields = prefix ? ['pk', 'sk', `${prefix}PK`, `${prefix}SK`] : ['pk', 'sk'];
     if (Object.keys(key).length !== fields.length || fields.some((field) => typeof key[field] !== 'string'))
       throw new Error();
-    if (key[history ? 'historyPK' : 'pk'] !== partition) throw new Error();
+    if (key[prefix ? `${prefix}PK` : 'pk'] !== partition) throw new Error();
     return key as Record<string, string>;
   } catch {
     throw new RangeError('Invalid pagination cursor');
@@ -91,26 +96,118 @@ export class DynamoIntakeStore implements IntakeStore {
     return (await this.get(keys.product(org, sku)))?.data as Product | undefined;
   }
 
-  async putProduct(org: string, product: Product): Promise<void> {
-    try {
-      await this.client.send(
-        new PutCommand({
-          TableName: this.tableName,
-          Item: {
-            ...keys.product(org, product.skuId),
-            data: product,
-            active: product.active,
-            trackingMode: product.trackingMode,
-          },
-          ConditionExpression: 'attribute_not_exists(pk) OR trackingMode = :mode',
-          ExpressionAttributeValues: { ':mode': product.trackingMode },
-        }),
-      );
-    } catch (error) {
-      if (conditionalFailure(error))
+  async putProduct(org: string, product: Product, actor?: Actor): Promise<void> {
+    const productKey = keys.product(org, product.skuId);
+    for (let attempt = 0; attempt < 6; attempt++) {
+      const previous = await this.get(productKey);
+      const existing = previous?.data as Product | undefined;
+      if (existing && existing.trackingMode !== product.trackingMode)
         throw new ConflictError('Tracking mode is immutable; create a new SKU for a new tracking model');
-      throw error;
+      const now = new Date().toISOString();
+      const data: Product = {
+        skuId: product.skuId,
+        trackingMode: product.trackingMode,
+        active: product.active,
+        name: product.name,
+        barcode: product.barcode,
+        createdAt: existing ? existing.createdAt : now,
+        createdBy: existing ? existing.createdBy : actor,
+        updatedAt: now,
+        updatedBy: actor,
+      };
+      const codes = [...new Set([product.skuId, ...(product.barcode ? [product.barcode] : [])])];
+      // The alias transaction and legacy SKU condition preserve one meaning for every scanned code.
+      const writes: NonNullable<ConstructorParameters<typeof TransactWriteCommand>[0]['TransactItems']> = [
+        {
+          Put: {
+            TableName: this.tableName,
+            Item: {
+              ...productKey,
+              data,
+              active: product.active,
+              trackingMode: product.trackingMode,
+              catalogPK: keys.catalog(org),
+              catalogSK: product.skuId,
+              revision: randomUUID(),
+            },
+            ConditionExpression: !previous
+              ? 'attribute_not_exists(pk)'
+              : previous.revision
+                ? 'revision = :revision'
+                : 'attribute_exists(pk) AND attribute_not_exists(revision)',
+            ...(previous?.revision ? { ExpressionAttributeValues: { ':revision': previous.revision } } : {}),
+          },
+        },
+        ...codes.map((code) => ({
+          Put: {
+            TableName: this.tableName,
+            Item: { ...keys.code(org, code), skuId: product.skuId },
+            ConditionExpression: 'attribute_not_exists(pk) OR skuId = :sku',
+            ExpressionAttributeValues: { ':sku': product.skuId },
+          },
+        })),
+      ];
+      if (product.barcode && product.barcode !== product.skuId)
+        writes.push({
+          ConditionCheck: {
+            TableName: this.tableName,
+            Key: keys.product(org, product.barcode),
+            ConditionExpression: 'attribute_not_exists(pk)',
+          },
+        });
+      if (existing?.barcode && !codes.includes(existing.barcode))
+        writes.push({
+          Delete: {
+            TableName: this.tableName,
+            Key: keys.code(org, existing.barcode),
+            ConditionExpression: 'attribute_not_exists(pk) OR skuId = :sku',
+            ExpressionAttributeValues: { ':sku': product.skuId },
+          },
+        });
+      try {
+        await this.client.send(
+          new TransactWriteCommand({ TransactItems: writes, ClientRequestToken: randomUUID() }),
+        );
+        return;
+      } catch (error) {
+        if (!transactionFailure(error)) throw error;
+        const aliases = await Promise.all(codes.map((code) => this.get(keys.code(org, code))));
+        const legacy =
+          product.barcode && product.barcode !== product.skuId
+            ? await this.getProduct(org, product.barcode)
+            : undefined;
+        if (aliases.some((alias) => alias && alias.skuId !== product.skuId) || legacy)
+          throw new ConflictError('Product code or barcode is already assigned to another SKU');
+        if (attempt === 5) throw error;
+        await retryDelay(attempt);
+      }
     }
+  }
+
+  async findProductByCode(org: string, code: string): Promise<Product | undefined> {
+    const alias = await this.get(keys.code(org, code));
+    const product = await this.getProduct(org, (alias?.skuId as string | undefined) ?? code);
+    return product && (product.skuId === code || product.barcode === code) ? product : undefined;
+  }
+
+  async listProducts(org: string, limit: number, cursor?: string): Promise<Page<Product>> {
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100)
+      throw new RangeError('Limit must be between 1 and 100');
+    const partition = keys.catalog(org);
+    const result = await this.client.send(
+      new QueryCommand({
+        TableName: this.tableName,
+        IndexName: 'catalog-index',
+        KeyConditionExpression: 'catalogPK = :pk',
+        ExpressionAttributeValues: { ':pk': partition },
+        Limit: limit,
+        ExclusiveStartKey: decodeCursor(cursor, partition, 'catalog'),
+      }),
+    );
+    return {
+      items: (result.Items ?? []).map((item) => item.data as Product),
+      cursor: pageCursor(result.LastEvaluatedKey),
+    };
   }
 
   async getWarehouse(org: string, warehouse: string): Promise<Warehouse | undefined> {
@@ -302,6 +399,30 @@ export class DynamoIntakeStore implements IntakeStore {
     };
   }
 
+  async listStock(org: string, warehouse: string, limit: number, cursor?: string): Promise<Page<Balance>> {
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100)
+      throw new RangeError('Limit must be between 1 and 100');
+    const partition = keys.stock(org, warehouse);
+    const result = await this.client.send(
+      new QueryCommand({
+        TableName: this.tableName,
+        IndexName: 'stock-index',
+        KeyConditionExpression: 'stockPK = :pk',
+        ExpressionAttributeValues: { ':pk': partition },
+        Limit: limit,
+        ExclusiveStartKey: decodeCursor(cursor, partition, 'stock'),
+      }),
+    );
+    return {
+      items: (result.Items ?? []).map((item) => ({
+        skuId: item.skuId as string,
+        quantity: item.quantity as number,
+        ...(item.lotCode === undefined ? {} : { lotCode: item.lotCode as string }),
+      })),
+      cursor: pageCursor(result.LastEvaluatedKey),
+    };
+  }
+
   private async reject(id: string, reason: string): Promise<void> {
     try {
       await this.client.send(
@@ -357,11 +478,13 @@ export class DynamoIntakeStore implements IntakeStore {
                 Update: {
                   TableName: this.tableName,
                   Key: balanceKey,
-                  UpdateExpression: `SET skuId = :sku${lot === undefined ? '' : ', lotCode = :lot'} ADD #quantity :quantity`,
+                  UpdateExpression: `SET skuId = :sku, stockPK = :stockPK, stockSK = :stockSK${lot === undefined ? '' : ', lotCode = :lot'} ADD #quantity :quantity`,
                   ConditionExpression: 'attribute_not_exists(#quantity) OR #quantity <= :maximum',
                   ExpressionAttributeNames: { '#quantity': 'quantity' },
                   ExpressionAttributeValues: {
                     ':sku': ledger.entry.skuId,
+                    ':stockPK': keys.stock(ledger.organizationId, ledger.warehouseId),
+                    ':stockSK': `${ledger.entry.skuId}#${balanceKey.sk}`,
                     ':quantity': ledger.quantity,
                     ':maximum': Number.MAX_SAFE_INTEGER - ledger.quantity,
                     ...(lot === undefined ? {} : { ':lot': lot }),

@@ -23,6 +23,7 @@ x-application: &application
     JWT_ISSUER: warehouse-local
     JWT_AUDIENCE: warehouse-api
     LOCAL_JWT_SECRET: local-development-only-not-for-production-12345
+    PUBLIC_ORIGIN: http://localhost:3000
 
 services:
   localstack:
@@ -42,6 +43,10 @@ services:
 
   setup:
     <<: *application
+    environment:
+      <<: *environment
+      LOCAL_ADMIN_USERNAME: ${LOCAL_ADMIN_USERNAME:-admin}
+      LOCAL_ADMIN_PASSWORD: ${LOCAL_ADMIN_PASSWORD:?Run npm run local:configure first}
     command: ['npm', 'run', 'local:setup']
     depends_on:
       localstack:

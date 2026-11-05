@@ -1,5 +1,17 @@
 # Validation evidence
 
+## Web console 1.1 validation — 2026-11-05
+
+- 65 unit/API/security/reconciliation tests passed.
+- 27 DynamoDB/SQS integration tests passed, including catalog ownership, barcode races, migration, hashed passwords, session expiry/revocation and distributed login limits.
+- 6 Chromium browser scenarios passed: product creator attribution and hardware-style scanning; mobile permissions; camera fallback decoding a real EAN-13 image from a synthetic video stream and stopping capture; uncertain-response replay without duplicate stock; password change and re-login; all eight printable demo labels decoded to their expected catalog values.
+- Desktop and 390 px mobile layouts were inspected with no page errors or document overflow in the tested flows.
+- 16 demo warehouses, 8 products and 48 stable movements were seeded; all 48 became APPLIED and the fixture subset totaled 16 units per warehouse, 256 overall. Re-running the seed returned 48 APPLIED replays and preserved stock. Both demo accounts signed in successfully; the manager saw 16 warehouses and the operator saw 2, with other warehouse requests denied.
+
+Physical USB/Bluetooth devices and a real phone camera were not available in this environment. Browser decoding used actual EAN-13 pixels and the real local ZXing decoder; it does not certify warehouse hardware or lighting conditions. The earlier backend load study below remains a separate baseline, not a fresh browser throughput test.
+
+## Backend 1.0 reference validation
+
 Validation performed on 2026-11-05. Application checks run with Node.js 24.19.0; integration uses LocalStack 4.12.0. These are local engineering results, not a deployed AWS certification.
 
 | Check                                                           | Recorded outcome                          |

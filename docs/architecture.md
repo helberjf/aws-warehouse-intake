@@ -6,7 +6,7 @@ Status: implemented receiving backend with API, outbox publisher, inventory work
 
 Use TypeScript services on ECS/Fargate. The HTTPS API accepts receiving movements; publisher tasks drain a durable outbox; worker tasks long-poll SQS and update inventory. Each service can scale independently. Workers have no public ingress. Separate execution roles from application task roles and scope each task to its own tables, indexes, queues and log groups.
 
-ALB handles HTTPS ingress. Identity validation and warehouse authorization are API responsibilities; configure a trusted organizational JWT issuer, audience and HTTPS JWKS endpoint as described in [API authentication](api.md). Do not trust warehouse membership, organization ID or product tracking mode from request body fields. Store neither scanner credentials nor AWS access keys in the repository.
+ALB handles HTTPS ingress. Identity validation and warehouse authorization are API responsibilities; use provisioned password accounts with opaque browser sessions, or configure a trusted JWT issuer/audience/JWKS for machine access as described in [authentication](browser.md). Do not trust warehouse membership, organization ID or product tracking mode from request body fields. Store neither scanner credentials nor AWS access keys in the repository.
 
 Production task placement should span availability zones. Lab and production task counts are separate decisions. Private-task egress must be designed explicitly using suitable endpoints or controlled NAT; neither has an assumed zero cost. Container images belong in ECR and log retention must be bounded.
 

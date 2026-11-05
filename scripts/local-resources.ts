@@ -2,10 +2,20 @@ import {
   CreateTableCommand,
   DescribeTableCommand,
   UpdateTimeToLiveCommand,
+  UpdateTableCommand,
   waitUntilTableExists,
 } from '@aws-sdk/client-dynamodb';
 import { CreateQueueCommand, GetQueueAttributesCommand } from '@aws-sdk/client-sqs';
 import { createClients } from '../src/clients.ts';
+
+const browseIndexes = ['catalog', 'stock'].map((prefix) => ({
+  IndexName: `${prefix}-index`,
+  KeySchema: [
+    { AttributeName: `${prefix}PK`, KeyType: 'HASH' as const },
+    { AttributeName: `${prefix}SK`, KeyType: 'RANGE' as const },
+  ],
+  Projection: { ProjectionType: 'ALL' as const },
+}));
 
 export async function setupLocal(tableName: string, queueName: string) {
   const endpoint = process.env.AWS_ENDPOINT_URL;
@@ -18,21 +28,55 @@ export async function setupLocal(tableName: string, queueName: string) {
   }
   const clients = createClients('us-east-1', endpoint);
   try {
-    await clients.dynamo.send(new DescribeTableCommand({ TableName: tableName }));
+    const existing = await clients.dynamo.send(new DescribeTableCommand({ TableName: tableName }));
+    for (const index of browseIndexes) {
+      if (existing.Table?.GlobalSecondaryIndexes?.some((item) => item.IndexName === index.IndexName))
+        continue;
+      await clients.dynamo.send(
+        new UpdateTableCommand({
+          TableName: tableName,
+          AttributeDefinitions: index.KeySchema.map((key) => ({
+            AttributeName: key.AttributeName,
+            AttributeType: 'S',
+          })),
+          GlobalSecondaryIndexUpdates: [{ Create: index }],
+        }),
+      );
+      let ready = false;
+      for (let attempt = 0; attempt < 100; attempt++) {
+        const state = await clients.dynamo.send(new DescribeTableCommand({ TableName: tableName }));
+        ready =
+          state.Table?.GlobalSecondaryIndexes?.find((item) => item.IndexName === index.IndexName)
+            ?.IndexStatus === 'ACTIVE';
+        if (ready) break;
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+      if (!ready) throw new Error('Local index creation exceeded wait limit');
+    }
   } catch (error) {
     if ((error as Error).name !== 'ResourceNotFoundException') throw error;
     await clients.dynamo.send(
       new CreateTableCommand({
         TableName: tableName,
         BillingMode: 'PAY_PER_REQUEST',
-        AttributeDefinitions: ['pk', 'sk', 'duePK', 'dueSK', 'historyPK', 'historySK'].map(
-          (AttributeName) => ({ AttributeName, AttributeType: 'S' }),
-        ),
+        AttributeDefinitions: [
+          'pk',
+          'sk',
+          'duePK',
+          'dueSK',
+          'historyPK',
+          'historySK',
+          'catalogPK',
+          'catalogSK',
+          'stockPK',
+          'stockSK',
+        ].map((AttributeName) => ({ AttributeName, AttributeType: 'S' })),
         KeySchema: [
           { AttributeName: 'pk', KeyType: 'HASH' },
           { AttributeName: 'sk', KeyType: 'RANGE' },
         ],
         GlobalSecondaryIndexes: [
+          ...browseIndexes,
           {
             IndexName: 'due-index',
             KeySchema: [

@@ -3,3 +3,5 @@ package-lock.json
 schemas/receiving-entry.schema.json
 coverage/
 dist/
+test-results/
+playwright-report/

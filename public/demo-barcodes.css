@@ -1,0 +1,144 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  color: #173b34;
+  background: #f3f6f4;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+main {
+  max-width: 1120px;
+  margin: auto;
+  padding: 36px 24px;
+}
+a {
+  color: #12694f;
+  text-decoration: none;
+  font-weight: 600;
+}
+header {
+  max-width: 840px;
+  margin-bottom: 30px;
+}
+h1 {
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  margin: 10px 0 16px;
+}
+p {
+  line-height: 1.65;
+}
+.eyebrow,
+.demo-badge {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+.eyebrow {
+  margin-top: 32px;
+}
+.notice {
+  background: #fff8de;
+  border: 1px solid #eadcae;
+  border-radius: 10px;
+  padding: 14px 18px;
+  color: #5b4d20;
+}
+.barcode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.barcode-card {
+  border: 1px solid #d8e2dc;
+  border-radius: 16px;
+  background: white;
+  padding: 24px;
+  break-inside: avoid;
+}
+.barcode-card h2 {
+  font-size: 20px;
+  margin: 10px 0 6px;
+}
+.sku {
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+  color: #63716b;
+  margin-top: 0;
+}
+.demo-badge {
+  color: #63716b;
+  margin-top: 0;
+}
+svg {
+  display: block;
+  width: min(100%, 300px);
+  height: auto;
+  margin: 12px auto;
+}
+.barcode-value {
+  font-family: ui-monospace, monospace;
+  letter-spacing: 0.15em;
+  text-align: center;
+  margin-bottom: 0;
+  color: #20372e;
+}
+footer {
+  font-size: 13px;
+  color: #63716b;
+  margin-top: 28px;
+}
+@media (max-width: 640px) {
+  main {
+    padding: 24px 16px;
+  }
+  .barcode-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media print {
+  :root {
+    background: white;
+  }
+  main {
+    padding: 0;
+  }
+  header a {
+    display: none;
+  }
+  h1 {
+    font-size: 26px;
+  }
+  header {
+    margin-bottom: 14px;
+  }
+  .eyebrow {
+    margin-top: 0;
+  }
+  .barcode-grid {
+    gap: 8mm;
+  }
+  .barcode-card {
+    border-color: #888;
+    padding: 5mm;
+    border-radius: 0;
+  }
+  .barcode-card h2 {
+    font-size: 13pt;
+  }
+  svg {
+    width: 52mm;
+  }
+  .notice {
+    background: white;
+    padding: 2mm;
+    font-size: 9pt;
+  }
+  footer {
+    font-size: 9pt;
+  }
+}

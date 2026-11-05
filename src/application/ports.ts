@@ -1,6 +1,7 @@
 import type { ReceivingProduct, prepareReceivingEntry } from '../domain/receiving.ts';
 
-export type PreparedEntry = ReturnType<typeof prepareReceivingEntry>;
+export type Actor = { subject: string; displayName?: string };
+export type PreparedEntry = ReturnType<typeof prepareReceivingEntry> & { recordedBy?: Actor };
 export type EntryStatus = 'ACCEPTED' | 'APPLIED' | 'REJECTED';
 export type LedgerEntry = PreparedEntry & {
   status: EntryStatus;
@@ -8,7 +9,15 @@ export type LedgerEntry = PreparedEntry & {
   completedAt?: string;
   rejectionReason?: string;
 };
-export type Product = ReceivingProduct & { active: boolean };
+export type Product = ReceivingProduct & {
+  active: boolean;
+  name?: string;
+  barcode?: string;
+  createdBy?: Actor;
+  createdAt?: string;
+  updatedBy?: Actor;
+  updatedAt?: string;
+};
 export type Warehouse = { warehouseId: string; name: string; active: boolean };
 export type Balance = { skuId: string; lotCode?: string; quantity: number };
 export type Page<T> = { items: T[]; cursor?: string };
@@ -16,7 +25,9 @@ export class ConflictError extends Error {}
 export class EligibilityError extends Error {}
 export interface IntakeStore {
   getProduct(organizationId: string, skuId: string): Promise<Product | undefined>;
-  putProduct(organizationId: string, product: Product): Promise<void>;
+  putProduct(organizationId: string, product: Product, actor?: Actor): Promise<void>;
+  listProducts(organizationId: string, limit: number, cursor?: string): Promise<Page<Product>>;
+  findProductByCode(organizationId: string, code: string): Promise<Product | undefined>;
   getWarehouse(organizationId: string, warehouseId: string): Promise<Warehouse | undefined>;
   putWarehouse(organizationId: string, warehouse: Warehouse): Promise<void>;
   accept(command: PreparedEntry): Promise<LedgerEntry>;
@@ -31,6 +42,12 @@ export interface IntakeStore {
     organizationId: string,
     warehouseId: string,
     skuId: string,
+    limit: number,
+    cursor?: string,
+  ): Promise<Page<Balance>>;
+  listStock(
+    organizationId: string,
+    warehouseId: string,
     limit: number,
     cursor?: string,
   ): Promise<Page<Balance>>;
