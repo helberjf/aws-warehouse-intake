@@ -1,0 +1,521 @@
+{
+  "schemaVersion": 1,
+  "runId": "afddabb8-1ca8-4f9f-bb26-8643532dd122",
+  "organizationId": "LOAD-afddabb8-1ca8-4f9f-bb26-8643532dd122",
+  "skuId": "PACKAGE-afddabb8",
+  "producerId": "warehouse-load",
+  "warehouseIds": [
+    "WH-01",
+    "WH-02",
+    "WH-03",
+    "WH-04",
+    "WH-05",
+    "WH-06",
+    "WH-07",
+    "WH-08",
+    "WH-09",
+    "WH-10",
+    "WH-11",
+    "WH-12",
+    "WH-13",
+    "WH-14",
+    "WH-15",
+    "WH-16"
+  ],
+  "startedAt": "2026-11-05T05:29:45.006Z",
+  "updatedAt": "2026-11-05T05:35:02.374Z",
+  "phase": "completed",
+  "environment": {
+    "api": "http://localhost:3000",
+    "awsEndpoint": "http://localhost:4566",
+    "tableName": "warehouse-local",
+    "localOnly": true
+  },
+  "profile": {
+    "count": 1200,
+    "concurrency": 32,
+    "rate": 4,
+    "warehouses": 16,
+    "distribution": "even",
+    "workflow": "browser",
+    "drainTimeout": 600,
+    "physicalUnitsPerMovement": 1,
+    "trackingMode": "SERIALIZED",
+    "oneSkuPerRun": true,
+    "auth": "real HTTP password login, HttpOnly session cookie and CSRF",
+    "workflowDetail": "HTTP approximation of browser: barcode lookup, POST, history20, up to2 status reads spaced250ms, second history20 and stock read. The UI polls every2s; no DOM rendering or physical camera is exercised.",
+    "scheduler": "Open-loop scheduled arrivals; slots drop when concurrency is exhausted or scheduler lag exceeds1 second; no waiting request queue"
+  },
+  "counts": {
+    "target": 1200,
+    "launched": 1200,
+    "accepted": 1200,
+    "failed": 0,
+    "failureEvents": 0,
+    "completedTasks": 1200,
+    "duplicateProbes": 12,
+    "httpRetries": 0,
+    "droppedCapacity": 0,
+    "droppedSchedule": 0,
+    "notLaunched": 0,
+    "observedStock": 1200,
+    "verifiedApplied": 1200,
+    "rejected": 0,
+    "verificationErrors": 0,
+    "historyPages": 16
+  },
+  "timing": {
+    "elapsedSeconds": 317.3663259,
+    "acceptanceSeconds": 300.2862942,
+    "acceptanceRate": 3.996186383387724,
+    "submissionEndedAt": "2026-11-05T05:34:46.209Z",
+    "processingFinishedAt": "2026-11-05T05:34:46.758Z",
+    "processingSeconds": 300.835,
+    "drainObservedSeconds": 315.7640185,
+    "verificationSeconds": 0.6273117999999668
+  },
+  "latencyMs": {
+    "acceptanceIncludingRetries": {
+      "samples": 1200,
+      "p50": 68.66649999999936,
+      "p95": 129.53759999998147,
+      "p99": 187.51919999999518,
+      "max": 305.6618000000017
+    },
+    "workflow": {
+      "samples": 1200,
+      "p50": 617.4886999999871,
+      "p95": 857.3037000000004,
+      "p99": 1015.1555999999982,
+      "max": 1293.6468000000023
+    },
+    "scheduledStartLag": {
+      "samples": 1200,
+      "p50": 5.873099999997066,
+      "p95": 13.546799999996438,
+      "p99": 14.807600000000093,
+      "max": 15.288300000000163
+    },
+    "serverAcceptanceToCompletion": {
+      "samples": 1200,
+      "p50": 487,
+      "p95": 1414,
+      "p99": 1558,
+      "max": 1898
+    }
+  },
+  "perWarehouse": [
+    {
+      "warehouseId": "WH-01",
+      "launched": 75,
+      "accepted": 75,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 75,
+      "actualStock": 75,
+      "expectedStock": 75,
+      "acceptanceLatencyMs": {
+        "samples": 75,
+        "p50": 71.13949999999022,
+        "p95": 159.24670000000333,
+        "p99": 232.9733000000124,
+        "max": 232.9733000000124
+      },
+      "completionLatencyMs": {
+        "samples": 75,
+        "p50": 560,
+        "p95": 1456,
+        "p99": 1659,
+        "max": 1659
+      }
+    },
+    {
+      "warehouseId": "WH-02",
+      "launched": 75,
+      "accepted": 75,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 75,
+      "actualStock": 75,
+      "expectedStock": 75,
+      "acceptanceLatencyMs": {
+        "samples": 75,
+        "p50": 65.14049999999952,
+        "p95": 151.42149999999674,
+        "p99": 207.97960000000603,
+        "max": 207.97960000000603
+      },
+      "completionLatencyMs": {
+        "samples": 75,
+        "p50": 479,
+        "p95": 1436,
+        "p99": 1553,
+        "max": 1553
+      }
+    },
+    {
+      "warehouseId": "WH-03",
+      "launched": 75,
+      "accepted": 75,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 75,
+      "actualStock": 75,
+      "expectedStock": 75,
+      "acceptanceLatencyMs": {
+        "samples": 75,
+        "p50": 67.62119999999413,
+        "p95": 115.92290000000503,
+        "p99": 153.27449999999953,
+        "max": 153.27449999999953
+      },
+      "completionLatencyMs": {
+        "samples": 75,
+        "p50": 374,
+        "p95": 1464,
+        "p99": 1651,
+        "max": 1651
+      }
+    },
+    {
+      "warehouseId": "WH-04",
+      "launched": 75,
+      "accepted": 75,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 75,
+      "actualStock": 75,
+      "expectedStock": 75,
+      "acceptanceLatencyMs": {
+        "samples": 75,
+        "p50": 68.36319999999978,
+        "p95": 120.20700000000943,
+        "p99": 161.45960000000196,
+        "max": 161.45960000000196
+      },
+      "completionLatencyMs": {
+        "samples": 75,
+        "p50": 397,
+        "p95": 1531,
+        "p99": 1898,
+        "max": 1898
+      }
+    },
+    {
+      "warehouseId": "WH-05",
+      "launched": 75,
+      "accepted": 75,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 75,
+      "actualStock": 75,
+      "expectedStock": 75,
+      "acceptanceLatencyMs": {
+        "samples": 75,
+        "p50": 68.27330000000075,
+        "p95": 119.25580000001355,
+        "p99": 167.57340000002296,
+        "max": 167.57340000002296
+      },
+      "completionLatencyMs": {
+        "samples": 75,
+        "p50": 367,
+        "p95": 1449,
+        "p99": 1698,
+        "max": 1698
+      }
+    },
+    {
+      "warehouseId": "WH-06",
+      "launched": 75,
+      "accepted": 75,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 75,
+      "actualStock": 75,
+      "expectedStock": 75,
+      "acceptanceLatencyMs": {
+        "samples": 75,
+        "p50": 67.71480000001611,
+        "p95": 109.2297000000035,
+        "p99": 184.73450000000048,
+        "max": 184.73450000000048
+      },
+      "completionLatencyMs": {
+        "samples": 75,
+        "p50": 402,
+        "p95": 1387,
+        "p99": 1585,
+        "max": 1585
+      }
+    },
+    {
+      "warehouseId": "WH-07",
+      "launched": 75,
+      "accepted": 75,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 75,
+      "actualStock": 75,
+      "expectedStock": 75,
+      "acceptanceLatencyMs": {
+        "samples": 75,
+        "p50": 75.66379999999481,
+        "p95": 129.03349999999955,
+        "p99": 224.31780000000435,
+        "max": 224.31780000000435
+      },
+      "completionLatencyMs": {
+        "samples": 75,
+        "p50": 579,
+        "p95": 1412,
+        "p99": 1466,
+        "max": 1466
+      }
+    },
+    {
+      "warehouseId": "WH-08",
+      "launched": 75,
+      "accepted": 75,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 75,
+      "actualStock": 75,
+      "expectedStock": 75,
+      "acceptanceLatencyMs": {
+        "samples": 75,
+        "p50": 76.76829999999609,
+        "p95": 157.72560000000522,
+        "p99": 305.6618000000017,
+        "max": 305.6618000000017
+      },
+      "completionLatencyMs": {
+        "samples": 75,
+        "p50": 667,
+        "p95": 1402,
+        "p99": 1506,
+        "max": 1506
+      }
+    },
+    {
+      "warehouseId": "WH-09",
+      "launched": 75,
+      "accepted": 75,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 75,
+      "actualStock": 75,
+      "expectedStock": 75,
+      "acceptanceLatencyMs": {
+        "samples": 75,
+        "p50": 74.97839999999997,
+        "p95": 157.7381999999925,
+        "p99": 224.1923000000097,
+        "max": 224.1923000000097
+      },
+      "completionLatencyMs": {
+        "samples": 75,
+        "p50": 527,
+        "p95": 1418,
+        "p99": 1553,
+        "max": 1553
+      }
+    },
+    {
+      "warehouseId": "WH-10",
+      "launched": 75,
+      "accepted": 75,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 75,
+      "actualStock": 75,
+      "expectedStock": 75,
+      "acceptanceLatencyMs": {
+        "samples": 75,
+        "p50": 63.20730000000913,
+        "p95": 152.0185000000056,
+        "p99": 175.85759999999937,
+        "max": 175.85759999999937
+      },
+      "completionLatencyMs": {
+        "samples": 75,
+        "p50": 555,
+        "p95": 1322,
+        "p99": 1771,
+        "max": 1771
+      }
+    },
+    {
+      "warehouseId": "WH-11",
+      "launched": 75,
+      "accepted": 75,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 75,
+      "actualStock": 75,
+      "expectedStock": 75,
+      "acceptanceLatencyMs": {
+        "samples": 75,
+        "p50": 72.77539999999863,
+        "p95": 119.02350000001024,
+        "p99": 180.21650000000045,
+        "max": 180.21650000000045
+      },
+      "completionLatencyMs": {
+        "samples": 75,
+        "p50": 434,
+        "p95": 1486,
+        "p99": 1675,
+        "max": 1675
+      }
+    },
+    {
+      "warehouseId": "WH-12",
+      "launched": 75,
+      "accepted": 75,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 75,
+      "actualStock": 75,
+      "expectedStock": 75,
+      "acceptanceLatencyMs": {
+        "samples": 75,
+        "p50": 66.51110000000335,
+        "p95": 138.59880000000703,
+        "p99": 167.28329999998095,
+        "max": 167.28329999998095
+      },
+      "completionLatencyMs": {
+        "samples": 75,
+        "p50": 380,
+        "p95": 1415,
+        "p99": 1552,
+        "max": 1552
+      }
+    },
+    {
+      "warehouseId": "WH-13",
+      "launched": 75,
+      "accepted": 75,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 75,
+      "actualStock": 75,
+      "expectedStock": 75,
+      "acceptanceLatencyMs": {
+        "samples": 75,
+        "p50": 68.61479999998119,
+        "p95": 122.82859999999346,
+        "p99": 129.53759999998147,
+        "max": 129.53759999998147
+      },
+      "completionLatencyMs": {
+        "samples": 75,
+        "p50": 433,
+        "p95": 1403,
+        "p99": 1505,
+        "max": 1505
+      }
+    },
+    {
+      "warehouseId": "WH-14",
+      "launched": 75,
+      "accepted": 75,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 75,
+      "actualStock": 75,
+      "expectedStock": 75,
+      "acceptanceLatencyMs": {
+        "samples": 75,
+        "p50": 70.09629999999743,
+        "p95": 111.90180000000692,
+        "p99": 156.9362000000001,
+        "max": 156.9362000000001
+      },
+      "completionLatencyMs": {
+        "samples": 75,
+        "p50": 455,
+        "p95": 1414,
+        "p99": 1512,
+        "max": 1512
+      }
+    },
+    {
+      "warehouseId": "WH-15",
+      "launched": 75,
+      "accepted": 75,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 75,
+      "actualStock": 75,
+      "expectedStock": 75,
+      "acceptanceLatencyMs": {
+        "samples": 75,
+        "p50": 66.46119999996154,
+        "p95": 126.86810000002151,
+        "p99": 195.36160000000382,
+        "max": 195.36160000000382
+      },
+      "completionLatencyMs": {
+        "samples": 75,
+        "p50": 594,
+        "p95": 1413,
+        "p99": 1452,
+        "max": 1452
+      }
+    },
+    {
+      "warehouseId": "WH-16",
+      "launched": 75,
+      "accepted": 75,
+      "failed": 0,
+      "dropped": 0,
+      "verified": 75,
+      "actualStock": 75,
+      "expectedStock": 75,
+      "acceptanceLatencyMs": {
+        "samples": 75,
+        "p50": 69.94949999998789,
+        "p95": 139.00070000000414,
+        "p99": 221.63779999996768,
+        "max": 221.63779999996768
+      },
+      "completionLatencyMs": {
+        "samples": 75,
+        "p50": 598,
+        "p95": 1317,
+        "p99": 1608,
+        "max": 1608
+      }
+    }
+  ],
+  "requestCounts": {
+    "login": 1,
+    "lookup": 1200,
+    "receiving": 1200,
+    "duplicate": 12,
+    "browser-history": 2400,
+    "browser-status": 2380,
+    "browser-stock": 1200,
+    "verification-stock": 48,
+    "verification-history": 16
+  },
+  "attemptStatuses": {
+    "200": 7244,
+    "202": 1212
+  },
+  "failures": [],
+  "failureSamplesTruncated": false,
+  "outcome": {
+    "complete": true,
+    "allApplied": true,
+    "targetMet": true,
+    "interrupted": false
+  },
+  "limitations": [
+    "Local emulation and a load driver on the same host do not establish AWS production capacity or cost.",
+    "GSI history is checked after consistent stock reaches the expected total; missing/stale entries receive bounded consistent status reads.",
+    "HTTP failures are retried with the exact original body, reference and idempotency key; exhausted retries stop new submissions and leave a partial report."
+  ]
+}

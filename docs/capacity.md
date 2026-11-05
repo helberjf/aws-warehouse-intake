@@ -13,8 +13,8 @@ The examples below assume 100,000 physical units/day, an eight-hour operating wi
 | All bulk, 100 units per movement     |         1,000 |                0.035/s |            1.04/s |
 
 ```bash
-npm run capacity -- --daily-units 100000 --serialized-share 1 --active-hours 8 --peak-factor 30 --warehouses 5
-npm run capacity -- --daily-units 100000 --serialized-share 0.5 --avg-bulk-units 100 --active-hours 8 --peak-factor 30 --warehouses 5
+npm run capacity -- --daily-units 100000 --serialized-share 1 --active-hours 8 --peak-factor 30 --warehouses 16
+npm run capacity -- --daily-units 100000 --serialized-share 0.5 --avg-bulk-units 100 --active-hours 8 --peak-factor 30 --warehouses 16
 npm run capacity -- --daily-units 250000 --serialized-share 0.5 --avg-bulk-units 100 --active-hours 8 --peak-factor 30 --warehouses 10
 ```
 
@@ -43,8 +43,25 @@ Task count should come from measured processing duration and per-task concurrenc
 
 ## Executable load and reconciliation
 
-Start the local Compose stack, copy `.env.example` to `.env`, then run `npm run test:load -- --count 1000 --concurrency 10`. The runner uses a unique synthetic run identity, 50% serialized and 50% bulk movements of 100units, two warehouses with 80/20 distribution, and 10% extra HTTP replays. It waits for every movement and checks exact balances. These are closed-loop concurrent requests, not a constant-rate arrival generator; reported acceptance throughput includes replay overhead.
+Run `npm run local:configure` and start the local Compose stack. The dedicated 16-warehouse runner creates a separate synthetic organization and a real password/session identity. It sends one serialized unit per movement, checks every ledger identity/operator/status, and reconciles all warehouse balances through the API. It never modifies the `DEMO` catalog or deploys AWS resources.
 
-For an isolated AWS benchmark, provide `LOAD_TEST_TOKEN` for the DEMO catalog, set `.env` appropriately, and explicitly use `--url https://your-test-host --allow-remote`. The runner never creates resources and rejects a remote target without that explicit flag. The count option supports 100,000 and larger runs. Run only with synthetic data and no concurrent unrelated serialized receipts, since stock reconciliation compares before/after totals.
+```sh
+# Browser HTTP workload: five minutes at four arrivals/second.
+npm run test:load:warehouses -- --count 1200 --concurrency 32 --rate 4 --warehouses 16 --workflow browser --output .tokens/browser-load.json
+# Complete daily volume, submitted with bounded concurrency as fast as responses allow.
+npm run test:load:warehouses -- --count 100000 --concurrency 32 --rate 0 --warehouses 16 --workflow receiving --output .tokens/daily-load.json
+# Independent strongly consistent audit of every outbox and serialized-unit record.
+npm run test:load:audit -- --report .tokens/daily-load.json --output .tokens/daily-audit.json
+```
+
+The browser profile is an HTTP approximation: barcode lookup, receiving, two history refreshes of twenty rows, up to two status reads with a synthetic 250-ms gap, and a stock read. It does not execute a camera or render the DOM, and the real UI polls at two-second intervals. The receiving profile measures authenticated submission and asynchronous processing separately. Both profiles probe exact HTTP replays for 1% of the movements.
+
+`--rate 0` is a closed-loop saturation test, not a fixed arrival rate. A positive `--rate` schedules arrivals independently and explicitly reports arrivals dropped when concurrency is exhausted or the driver falls over one second behind. A report cannot pass its target with dropped arrivals. `--distribution hot` directs 80% of arrivals to the first warehouse; other warehouses share the remainder. Reports checkpoint every fifteen seconds and preserve failures without credentials.
+
+The independent audit must run after producers stop. It checks every expected outbox and unit record, then observes the global shared queue, dead-letter queue and pending-outbox index. Another active workload can make the global idle check fail even if this run's records are valid. Queue attributes are approximate and indexes are eventually consistent; these observations supplement exact ledger and balance checks.
+
+The older `npm run test:load -- --count 1000 --concurrency 10` runner remains available for the original two-warehouse JWT/bulk reference test. It uses 50% serialized and 50% bulk movements of 100 units, 80/20 warehouse distribution and 10% extra HTTP replays. Its physical-unit total is not an individual-package throughput result.
+
+The new 16-warehouse tools intentionally require local emulation. For the older runner's isolated AWS benchmark, provide `LOAD_TEST_TOKEN` for the DEMO catalog, set `.env` appropriately, and explicitly use `--url https://your-test-host --allow-remote`. That runner never creates resources and rejects a remote target without the explicit flag. Run only with synthetic data and no concurrent unrelated serialized receipts, since its reconciliation compares before/after totals.
 
 Recorded local evidence is kept in [validation](validation.md). The longer proposed profiles above remain deployment qualification targets.

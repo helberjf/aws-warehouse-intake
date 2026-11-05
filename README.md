@@ -93,6 +93,8 @@ Tests cover authentication, warehouse isolation, concurrent acceptance, conflict
 
 The load runner mixes serialized and bulk movements, sends HTTP replays, concentrates 80% of traffic in one warehouse, waits for every entry to become applied, and reconciles expected stock. See [validation evidence](docs/validation.md) and [capacity planning](docs/capacity.md).
 
+The dedicated `npm run test:load:warehouses` runner tests individually serialized packages across 16 warehouses with real browser sessions, isolated data and exact reconciliation. It supports fixed arrival rates, bounded concurrency and uneven warehouse traffic. See the [16-warehouse measurements](docs/load-16-warehouses.md), including the separate outbox/unit audit.
+
 **100,000 units are not necessarily 100,000 movements.** Serialized intake means about 3.47 movements/second over eight hours; bulk movements can group many units. Peak traffic and hot SKUs determine task sizing.
 
 ## Deploy and operate

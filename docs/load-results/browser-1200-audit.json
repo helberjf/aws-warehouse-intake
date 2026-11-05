@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "audit": "Independent read-only post-run outbox and unit registry audit",
+  "runId": "afddabb8-1ca8-4f9f-bb26-8643532dd122",
+  "sourceReportSha256": "5c590c266d60b4a519fac11494e6918882b88d74a9b0ee1fe9a925144bb1a62c",
+  "startedAt": "2026-11-05T05:35:09.711Z",
+  "finishedAt": "2026-11-05T05:35:10.488Z",
+  "elapsedSeconds": 0.7750045999999999,
+  "readConsistency": "Strongly consistent BatchGet for outbox and unit records",
+  "concurrency": 4,
+  "counters": {
+    "expectedReceipts": 1200,
+    "expectedRecords": 2400,
+    "checked": 2400,
+    "outboxChecked": 1200,
+    "unitChecked": 1200,
+    "missing": 0,
+    "mismatched": 0,
+    "unprocessedExhausted": 0,
+    "batchRequests": 24,
+    "batchRetries": 0
+  },
+  "examples": [],
+  "examplesTruncated": false,
+  "globalState": {
+    "observations": 1,
+    "primary": {
+      "visible": 0,
+      "inFlight": 0,
+      "delayed": 0
+    },
+    "deadLetter": {
+      "visible": 0,
+      "inFlight": 0,
+      "delayed": 0
+    },
+    "pendingOutbox": {
+      "checkedShards": 16,
+      "limitPerShard": 1,
+      "nonemptyShards": [],
+      "minimumRecords": 0,
+      "exactCount": true
+    },
+    "observedIdle": true,
+    "scope": "Global shared queue, DLQ and outbox-index observations; not attributed solely to this run."
+  },
+  "outcome": {
+    "passed": true,
+    "recordsValid": true
+  },
+  "limitations": [
+    "Queue attributes are approximate and the due-index is eventually consistent; an idle observation is not an atomic snapshot.",
+    "Global queue/DLQ/index activity can belong to other runs. Per-record identity and warehouse checks belong to this run.",
+    "Published outbox records expire after seven days; perform this audit before their TTL removal.",
+    "This read-only local emulator audit supplements API ledger/stock verification and does not establish AWS production performance."
+  ]
+}

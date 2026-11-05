@@ -28,7 +28,10 @@
     "test:e2e": "node --env-file=.env node_modules/@playwright/test/cli.js test",
     "migrate:indexes": "node --env-file=.env scripts/backfill-indexes.ts",
     "demo:seed": "node --env-file=.env scripts/demo-seed.ts",
-    "costs": "node scripts/estimate-cost.ts"
+    "costs": "node scripts/estimate-cost.ts",
+    "test:load:warehouses": "node --env-file=.env scripts/warehouse-load.ts",
+    "test:load:monitor": "node --env-file=.env scripts/load-monitor.ts",
+    "test:load:audit": "node --env-file=.env scripts/audit-load.ts"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1162.0",

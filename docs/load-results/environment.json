@@ -1,0 +1,24 @@
+{
+  "recordedAt": "2026-11-05T05:24:07.591Z",
+  "commit": "6936813942c01accdb61da9d87e1b2f3eeceb679",
+  "node": "v24.19.0",
+  "host": {
+    "platform": "win32",
+    "cpu": "AMD Ryzen 7 Pro 7735U with Radeon Graphics     ",
+    "logicalCpus": 16,
+    "totalMemoryBytes": 16371195904
+  },
+  "docker": {
+    "version": "29.8.1",
+    "cpus": 16,
+    "memoryBytes": 7926865920
+  },
+  "profile": {
+    "apiContainers": 1,
+    "publisherContainers": 1,
+    "workerContainers": 1,
+    "emulator": "LocalStack4.12.0",
+    "containerCpuMemoryLimits": "No application CPU/memory limits configured in local Compose; all share the Docker VM"
+  },
+  "note": "Local emulation, not deployed AWS Fargate limits, availability zones, network latency or service quotas."
+}

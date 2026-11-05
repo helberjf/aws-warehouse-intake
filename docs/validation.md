@@ -1,5 +1,9 @@
 # Validation evidence
 
+## Sixteen-warehouse load evidence — 2026-11-05
+
+The [dedicated load report](load-16-warehouses.md) records the authenticated browser HTTP workload and its independent outbox/unit audit. Its individual-package counts must not be confused with the older mixed bulk/serialized reference below.
+
 ## Web console 1.1 validation — 2026-11-05
 
 - 65 unit/API/security/reconciliation tests passed.
