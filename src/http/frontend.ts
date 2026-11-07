@@ -4,6 +4,9 @@ import type { FastifyInstance } from 'fastify';
 /** Fixed asset allowlist: request input never becomes a filesystem path. */
 export function registerFrontend(app: FastifyInstance) {
   const assets: Record<string, [string, string]> = {
+    '/runtime-config.js': ['../../public/runtime-config.js', 'text/javascript; charset=utf-8'],
+    '/preview.js': ['../../public/preview.js', 'text/javascript; charset=utf-8'],
+    '/favicon.svg': ['../../public/favicon.svg', 'image/svg+xml'],
     '/demo-barcodes.html': ['../../public/demo-barcodes.html', 'text/html; charset=utf-8'],
     '/demo-barcodes.css': ['../../public/demo-barcodes.css', 'text/css; charset=utf-8'],
     '/': ['../../public/index.html', 'text/html; charset=utf-8'],

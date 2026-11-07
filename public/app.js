@@ -1,4 +1,8 @@
 import { CameraScanner } from './scanner.js';
+import { deployment } from './runtime-config.js';
+
+const isPreview = deployment.mode === 'preview';
+const preview = isPreview ? await import('./preview.js') : null;
 
 const root = document.querySelector('#app');
 const icons = {
@@ -50,6 +54,7 @@ const state = {
   sequence: 0,
 };
 const isAdmin = () => state.user?.roles.includes('admin');
+const canInspectProducts = () => isPreview || isAdmin();
 const warehouseName = () =>
   state.warehouses.find((w) => w.warehouseId === state.warehouseId)?.name ||
   state.warehouseId ||
@@ -85,6 +90,7 @@ const errors = {
   429: 'Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.',
 };
 async function api(path, options = {}) {
+  if (isPreview) return preview.previewRequest(path, options);
   let response;
   try {
     response = await fetch(path, {
@@ -140,10 +146,12 @@ function pageHeader(kicker, title, description, action = '') {
   return `<div class="page-heading"><div><p class="eyebrow">${esc(kicker)}</p><h1>${esc(title)}</h1><p class="muted">${esc(description)}</p></div>${action}</div>`;
 }
 function rememberReceipt() {
+  if (isPreview) return;
   if (state.receipt) sessionStorage.setItem('warehouse-pending-receipt', JSON.stringify(state.receipt));
   else sessionStorage.removeItem('warehouse-pending-receipt');
 }
 function restoreReceipt() {
+  if (isPreview) return;
   try {
     const saved = JSON.parse(sessionStorage.getItem('warehouse-pending-receipt') || 'null');
     if (
@@ -161,6 +169,7 @@ function restoreReceipt() {
 }
 
 function renderLogin(message = '') {
+  if (isPreview) return renderPreviewLanding(message);
   state.sequence++;
   document.title = 'Entrar · Armazém';
   root.innerHTML = `<div class="login-layout"><section class="login-story" aria-label="Armazém"><div class="brand"><span class="brand-mark">A</span><div>armazém<div class="brand-subtitle">GESTÃO DE RECEBIMENTOS</div></div></div><div class="login-story-content"><p class="eyebrow">DA CHEGADA AO ESTOQUE</p><h1>Cada entrada.<br>Cada produto.<br><span>Tudo no lugar.</span></h1><p>Uma visão clara dos seus galpões, com recebimentos organizados e responsabilidade em cada registro.</p><div class="login-feature">${icon('barcode')}Leia o código. Encontre o produto.</div><div class="login-feature">${icon('stock')}Acompanhe o estoque por galpão.</div><div class="login-feature">${icon('shield')}Saiba quem registrou cada entrada.</div></div><div class="login-footer">ARMAZÉM / CONTROLE QUE ACOMPANHA A OPERAÇÃO</div></section><main id="main" class="login-pane"><div class="login-box"><div class="brand login-mobile-brand"><span class="brand-mark">A</span><div>armazém<div class="brand-subtitle">GESTÃO DE RECEBIMENTOS</div></div></div><span class="login-label">${icon('shield')} ACESSO À OPERAÇÃO</span><h2>Bem-vindo de volta</h2><p class="muted">Entre com sua conta para acessar os galpões da sua organização.</p><form id="login-form"><div id="login-error" class="alert alert-error" role="alert" ${message ? '' : 'hidden'}>${esc(message)}</div><div class="field"><label for="organization">Organização</label><input id="organization" name="organizationId" autocomplete="organization" required maxlength="64" placeholder="Código da organização" /></div><div class="field"><label for="username">Usuário</label><input id="username" name="username" autocomplete="username" required maxlength="128" placeholder="Seu usuário" /></div><div class="field"><label for="password">Senha</label><div class="password-toggle"><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="128" placeholder="Sua senha" /><button type="button" id="show-password" class="icon-button" aria-label="Mostrar senha">${icon('eye')}</button></div></div><button id="login-submit" class="button button-primary" type="submit">Entrar na operação ${icon('arrow')}</button></form><p class="login-note">Ainda não tem acesso ou esqueceu a senha?<br>Solicite ao administrador da sua organização.</p></div></main></div>`;
@@ -189,7 +198,7 @@ function renderLogin(message = '') {
   });
 }
 async function startSession() {
-  const session = await api('/auth/session');
+  const session = isPreview ? { user: preview.previewVisitor, csrfToken: null } : await api('/auth/session');
   state.user = session.user;
   state.csrfToken = session.csrfToken;
   const [warehouses, products] = await Promise.all([api('/warehouses'), api('/products?limit=50')]);
@@ -201,13 +210,33 @@ async function startSession() {
   restoreReceipt();
   await navigate('stock');
 }
+
+function renderPreviewLanding(message = '') {
+  state.sequence++;
+  document.title = 'Demonstração · Armazém';
+  root.innerHTML = `<div class="login-layout preview-mode"><section class="login-story" aria-label="Armazém"><div class="brand"><span class="brand-mark">A</span><div>armazém<div class="brand-subtitle">GESTÃO DE RECEBIMENTOS</div></div></div><div class="login-story-content"><p class="eyebrow">CONHEÇA A INTERFACE</p><h1>Uma visão clara.<br>De cada produto.<br><span>Em cada galpão.</span></h1><p>Explore o catálogo, os recebimentos e o estoque em um ambiente ilustrativo, preparado para apresentar a operação.</p><div class="login-feature">${icon('stock')}16 galpões para explorar</div><div class="login-feature">${icon('barcode')}Consulta por código de barras</div><div class="login-feature">${icon('user')}Histórico com responsáveis fictícios</div></div><div class="login-footer">DEMONSTRAÇÃO · DADOS FICTÍCIOS · SOMENTE LEITURA</div></section><main id="main" class="login-pane"><div class="login-box"><div class="brand login-mobile-brand"><span class="brand-mark">A</span><div>armazém<div class="brand-subtitle">GESTÃO DE RECEBIMENTOS</div></div></div><span class="login-label">${icon('eye')} DEMONSTRAÇÃO DA INTERFACE</span><h2>Conheça o Armazém</h2><p class="muted">Navegue pelos galpões, consulte produtos e veja como funciona o recebimento. Todos os dados apresentados são fictícios.</p>${message ? `<div class="alert alert-error" role="alert">${esc(message)}</div>` : ''}<button id="explore-preview" class="button button-primary" type="button">Explorar demonstração ${icon('arrow')}</button><div class="preview-landing-note"><strong>Sem conta, senha ou gravação de dados.</strong><p>Esta prévia é somente leitura. Login real, cadastros e entradas serão habilitados quando a operação estiver conectada à AWS.</p></div></div></main></div>`;
+  document.querySelector('#explore-preview').addEventListener('click', async () => {
+    const button = document.querySelector('#explore-preview');
+    setButton(button, true, 'Abrindo demonstração…');
+    try {
+      await startSession();
+    } catch (error) {
+      renderPreviewLanding(error.message);
+    }
+  });
+}
 function shell() {
-  const pages = { stock: 'Estoque', receiving: 'Entradas', products: 'Produtos', account: 'Minha conta' };
-  root.innerHTML = `<div class="app-layout"><aside class="sidebar" aria-label="Menu principal"><div class="brand"><span class="brand-mark">A</span><div>armazém<div class="brand-subtitle">CONTROLE DA OPERAÇÃO</div></div></div><p class="nav-caption">ESPAÇO DE TRABALHO</p><nav class="nav-list">${[
+  const pages = {
+    stock: 'Estoque',
+    receiving: 'Entradas',
+    products: 'Produtos',
+    account: isPreview ? 'Sobre a prévia' : 'Minha conta',
+  };
+  root.innerHTML = `<div class="app-layout${isPreview ? ' preview-mode' : ''}"><aside class="sidebar" aria-label="Menu principal"><div class="brand"><span class="brand-mark">A</span><div>armazém<div class="brand-subtitle">CONTROLE DA OPERAÇÃO</div></div></div><p class="nav-caption">ESPAÇO DE TRABALHO</p><nav class="nav-list">${[
     ['stock', 'stock', 'Estoque'],
     ['receiving', 'receive', 'Entradas'],
     ['products', 'box', 'Produtos'],
-    ['account', 'user', 'Minha conta'],
+    ['account', 'user', isPreview ? 'Sobre a prévia' : 'Minha conta'],
   ]
     .map(
       ([view, symbol, label]) =>
@@ -215,7 +244,7 @@ function shell() {
     )
     .join(
       '',
-    )}</nav><div class="sidebar-bottom"><p class="sidebar-help">Uma operação organizada<br>começa com um bom registro.</p><div class="profile"><div class="avatar">${esc((state.user.displayName || state.user.subject).slice(0, 2).toUpperCase())}</div><div><div class="profile-name">${esc(state.user.displayName || state.user.subject)}</div><div class="profile-role">${isAdmin() ? 'Administrador' : 'Operador de recebimentos'}</div></div></div></div></aside><div class="workspace"><header class="topbar"><div class="breadcrumb"><span>${esc(state.user.organizationId)}</span><span class="separator">/</span><strong>${pages[state.view]}</strong></div><div class="topbar-actions"><span class="session-tag"><span class="status-dot"></span>Sessão protegida</span><label class="warehouse-switch">${icon('stock')}<select id="warehouse-select" aria-label="Galpão selecionado">${state.warehouses.length ? state.warehouses.map((w) => `<option value="${esc(w.warehouseId)}" ${w.warehouseId === state.warehouseId ? 'selected' : ''}>${esc(w.name || w.warehouseId)}${w.active ? '' : ' · Inativo'}</option>`).join('') : '<option value="">Nenhum galpão</option>'}</select></label><button type="button" class="icon-button" id="logout" aria-label="Sair da conta" title="Sair">${icon('logout')}</button></div></header><main id="main" class="content" tabindex="-1"></main></div></div>`;
+    )}</nav><div class="sidebar-bottom"><p class="sidebar-help">Uma operação organizada<br>começa com um bom registro.</p><div class="profile"><div class="avatar">${esc((state.user.displayName || state.user.subject).slice(0, 2).toUpperCase())}</div><div><div class="profile-name">${esc(state.user.displayName || state.user.subject)}</div><div class="profile-role">${isPreview ? 'Visitante · somente leitura' : isAdmin() ? 'Administrador' : 'Operador de recebimentos'}</div></div></div></div></aside><div class="workspace">${isPreview ? `<div class="preview-banner" role="note">${icon('eye')}<span>Demonstração · dados fictícios · somente leitura</span></div>` : ''}<header class="topbar"><div class="breadcrumb"><span>${esc(state.user.organizationId)}</span><span class="separator">/</span><strong>${pages[state.view]}</strong></div><div class="topbar-actions"><span class="session-tag"><span class="status-dot"></span>${isPreview ? 'Prévia estática' : 'Sessão protegida'}</span><label class="warehouse-switch">${icon('stock')}<select id="warehouse-select" aria-label="Galpão selecionado">${state.warehouses.length ? state.warehouses.map((w) => `<option value="${esc(w.warehouseId)}" ${w.warehouseId === state.warehouseId ? 'selected' : ''}>${esc(w.name || w.warehouseId)}${w.active ? '' : ' · Inativo'}</option>`).join('') : '<option value="">Nenhum galpão</option>'}</select></label><button type="button" class="icon-button" id="logout" aria-label="${isPreview ? 'Voltar à apresentação' : 'Sair da conta'}" title="${isPreview ? 'Voltar à apresentação' : 'Sair'}">${icon('logout')}</button></div></header><main id="main" class="content" tabindex="-1"></main></div></div>`;
   document
     .querySelectorAll('[data-view]')
     .forEach((button) => button.addEventListener('click', () => navigate(button.dataset.view)));
@@ -228,7 +257,7 @@ function shell() {
   });
   document.querySelector('#logout').addEventListener('click', async () => {
     try {
-      await api('/auth/logout', { method: 'POST', body: '{}' });
+      if (!isPreview) await api('/auth/logout', { method: 'POST', body: '{}' });
       closeCamera();
       state.user = null;
       state.csrfToken = null;
@@ -248,7 +277,7 @@ async function navigate(view) {
   state.sequence++;
   const sequence = state.sequence;
   shell();
-  document.title = `${{ stock: 'Estoque', receiving: 'Entradas', products: 'Produtos', account: 'Minha conta' }[view]} · Armazém`;
+  document.title = `${{ stock: 'Estoque', receiving: 'Entradas', products: 'Produtos', account: isPreview ? 'Sobre a prévia' : 'Minha conta' }[view]} · Armazém`;
   if (view === 'stock') {
     renderStock();
     await loadStock(false, sequence);
@@ -266,7 +295,7 @@ function renderStock() {
       'VISIBILIDADE DA OPERAÇÃO',
       'Estoque por galpão',
       'Consulte os produtos disponíveis e o saldo de cada lote.',
-      `<button class="button button-primary" id="new-receipt">${icon('plus')} Registrar entrada</button>`,
+      `<button class="button button-primary" id="new-receipt">${icon(isPreview ? 'eye' : 'plus')} ${isPreview ? 'Explorar recebimento' : 'Registrar entrada'}</button>`,
     ) +
     `<div class="stats"><article class="stat-card"><div><div class="stat-label">Galpão selecionado</div><div class="stat-value" id="stock-warehouse">${esc(state.warehouseId || '—')}</div><div class="stat-detail">${esc(warehouseName())}</div></div><div class="stat-icon">${icon('stock')}</div></article><article class="stat-card"><div><div class="stat-label">Unidades listadas</div><div class="stat-value" id="stock-units">—</div><div class="stat-detail">Soma das linhas carregadas</div></div><div class="stat-icon">${icon('box')}</div></article><article class="stat-card"><div><div class="stat-label">Linhas nesta consulta</div><div class="stat-value" id="stock-lines">—</div><div class="stat-detail">Um registro por produto e lote</div></div><div class="stat-icon">${icon('barcode')}</div></article></div><section class="panel"><div class="panel-header"><div><h2>Produtos em estoque</h2><p>${esc(warehouseName())} · Consulte outro galpão no seletor acima</p></div><button class="button button-secondary" id="refresh-stock">${icon('refresh')} Atualizar</button></div><div class="toolbar"><form id="stock-search" class="search-form"><div class="search-wrap">${icon('search')}<input class="input" name="skuId" id="stock-sku" aria-label="Buscar estoque por SKU" placeholder="Filtrar pelo SKU exato" value="${esc(state.stockFilter)}" maxlength="64" /></div><button class="button button-secondary" type="submit">Buscar</button></form><p class="inventory-caption">Saldo por produto e lote</p></div><div id="stock-table"><div class="loading" role="status">Consultando o estoque…</div></div></section><p class="section-note">${icon('info')}O saldo considera as entradas concluídas. A consulta geral pode levar alguns instantes para refletir uma nova entrada.</p>`;
   document.querySelector('#new-receipt').addEventListener('click', () => navigate('receiving'));
@@ -327,12 +356,30 @@ function renderProducts(formProduct) {
     pageHeader(
       'CATÁLOGO DA ORGANIZAÇÃO',
       'Produtos',
-      'Cadastre o produto uma vez. Identifique-o pelo SKU ou pelo código de barras.',
-      isAdmin()
-        ? `<button id="new-product" class="button button-primary">${icon('plus')} Cadastrar produto</button>`
+      isPreview
+        ? 'Explore oito produtos fictícios e veja o modelo de cadastro.'
+        : 'Cadastre o produto uma vez. Identifique-o pelo SKU ou pelo código de barras.',
+      canInspectProducts()
+        ? `<button id="new-product" class="button button-primary">${icon(isPreview ? 'eye' : 'plus')} ${isPreview ? 'Ver formulário de cadastro' : 'Cadastrar produto'}</button>`
         : '',
     ) +
     `<section id="product-editor" class="panel" ${formProduct ? '' : 'hidden'}><div class="panel-header"><div><h2>${formProduct?.skuId ? 'Editar produto' : 'Novo produto'}</h2><p>O usuário responsável pelo cadastro é registrado automaticamente.</p></div><button type="button" id="close-product" class="icon-button" aria-label="Fechar cadastro">×</button></div><div class="panel-body"><form id="product-form"><div id="product-error" class="alert alert-error" role="alert" hidden></div><div class="form-grid"><div class="field"><label for="product-name">Nome do produto</label><input id="product-name" name="name" required maxlength="128" placeholder="Ex.: Caixa organizadora 40 L" value="${esc(formProduct?.name || '')}" /></div><div class="field"><label for="product-sku">SKU / código interno</label><input id="product-sku" name="skuId" required maxlength="64" pattern="[A-Za-z0-9][A-Za-z0-9._-]*" placeholder="Ex.: CX-0040" value="${esc(formProduct?.skuId || '')}" ${formProduct?.skuId ? 'readonly' : ''} /><p class="hint">Use letras, números, ponto, hífen ou sublinhado.</p></div><div class="field"><label for="product-barcode">Código de barras <span class="muted small">(opcional)</span></label><input id="product-barcode" name="barcode" maxlength="128" placeholder="Leia ou digite o código do produto" value="${esc(formProduct?.barcode || '')}" /><p class="hint">Use o leitor USB/Bluetooth ou informe o código da embalagem.</p></div><div class="field"><label for="product-mode">Controle do recebimento</label><select id="product-mode" name="trackingMode" ${formProduct?.skuId ? 'disabled' : ''}><option value="BULK" ${formProduct?.trackingMode === 'BULK' ? 'selected' : ''}>Por quantidade</option><option value="SERIALIZED" ${formProduct?.trackingMode === 'SERIALIZED' ? 'selected' : ''}>Por número de série</option></select><p class="hint">O tipo de controle não pode mudar após o cadastro.</p></div></div><div class="form-actions"><label class="check-label"><input id="product-active" type="checkbox" ${formProduct?.active === false ? '' : 'checked'} /> Produto ativo</label><button type="button" class="button button-secondary" id="cancel-product">Cancelar</button><button type="submit" id="save-product" class="button button-primary">${formProduct?.skuId ? 'Salvar alterações' : 'Cadastrar produto'}</button></div></form></div></section><section class="panel"><div class="panel-header"><div><h2>Catálogo de produtos</h2><p>Produtos compartilhados pelos galpões da organização</p></div><span class="badge badge-neutral">${number(state.products.length)} carregados</span></div><div id="products-table">${productsTable()}</div></section><p class="section-note">${icon('shield')}O autor original do cadastro permanece registrado mesmo quando outro usuário edita o produto.</p>`;
+  if (isPreview) {
+    const editor = document.querySelector('#product-editor');
+    editor.querySelector('h2').textContent = formProduct?.skuId
+      ? 'Cadastro de exemplo'
+      : 'Modelo de cadastro';
+    editor.querySelector('.panel-header p').textContent =
+      'Visualização somente leitura. Nenhum produto será criado ou alterado.';
+    editor.querySelectorAll('input, select').forEach((input) => {
+      input.disabled = true;
+    });
+    const save = document.querySelector('#save-product');
+    save.disabled = true;
+    save.textContent = 'Gravação indisponível na demonstração';
+    document.querySelector('#main > .section-note').textContent =
+      'Os responsáveis e as datas deste catálogo são fictícios. Na operação conectada, a autoria vem do usuário autenticado.';
+  }
   document.querySelector('#new-product')?.addEventListener('click', () => {
     renderProducts({});
     document.querySelector('#product-editor').hidden = false;
@@ -355,6 +402,10 @@ function renderProducts(formProduct) {
   });
   document.querySelector('#product-form').addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (isPreview) {
+      toast(preview.readOnlyMessage);
+      return;
+    }
     const subject = state.user.subject;
     const organization = state.user.organizationId;
     const button = document.querySelector('#save-product');
@@ -390,7 +441,7 @@ function productsTable() {
       'Seu catálogo começa aqui',
       'Cadastre os produtos para localizar seus códigos e registrar recebimentos.',
     );
-  return `<div class="table-scroll"><table><thead><tr><th>Produto</th><th>Código de barras</th><th>Controle</th><th>Cadastrado por</th><th>Situação</th>${isAdmin() ? '<th><span class="sr-only">Ações</span></th>' : ''}</tr></thead><tbody>${state.products.map((product) => `<tr><td><div class="product-cell"><span class="product-symbol">${icon('box')}</span><div><div class="primary-text">${esc(product.name || product.skuId)}</div><div class="secondary-text mono">${esc(product.skuId)}</div></div></div></td><td class="mono">${esc(product.barcode || '—')}</td><td>${product.trackingMode === 'SERIALIZED' ? 'Número de série' : 'Quantidade'}</td><td><div class="primary-text">${esc(nameOf(product.createdBy))}</div><div class="secondary-text">${date(product.createdAt)}</div></td><td><span class="badge ${product.active ? '' : 'badge-neutral'}">${product.active ? 'Ativo' : 'Inativo'}</span></td>${isAdmin() ? `<td><button class="button button-quiet" data-edit-product="${esc(product.skuId)}" aria-label="Editar ${esc(product.name || product.skuId)}">Editar</button></td>` : ''}</tr>`).join('')}</tbody></table></div><div class="table-footer"><span>${number(state.products.length)} produtos carregados</span>${state.productCursor ? '<button id="more-products" class="button button-quiet">Carregar mais</button>' : '<span>Fim do catálogo</span>'}</div>`;
+  return `<div class="table-scroll"><table><thead><tr><th>Produto</th><th>Código de barras</th><th>Controle</th><th>Cadastrado por</th><th>Situação</th>${canInspectProducts() ? '<th><span class="sr-only">Ações</span></th>' : ''}</tr></thead><tbody>${state.products.map((product) => `<tr><td><div class="product-cell"><span class="product-symbol">${icon('box')}</span><div><div class="primary-text">${esc(product.name || product.skuId)}</div><div class="secondary-text mono">${esc(product.skuId)}</div></div></div></td><td class="mono">${esc(product.barcode || '—')}</td><td>${product.trackingMode === 'SERIALIZED' ? 'Número de série' : 'Quantidade'}</td><td><div class="primary-text">${esc(nameOf(product.createdBy))}</div><div class="secondary-text">${date(product.createdAt)}</div></td><td><span class="badge ${product.active ? '' : 'badge-neutral'}">${product.active ? 'Ativo' : 'Inativo'}</span></td>${canInspectProducts() ? `<td><button class="button button-quiet" data-edit-product="${esc(product.skuId)}" aria-label="${isPreview ? 'Ver cadastro de' : 'Editar'} ${esc(product.name || product.skuId)}">${isPreview ? 'Ver cadastro' : 'Editar'}</button></td>` : ''}</tr>`).join('')}</tbody></table></div><div class="table-footer"><span>${number(state.products.length)} produtos carregados</span>${state.productCursor ? '<button id="more-products" class="button button-quiet">Carregar mais</button>' : '<span>Fim do catálogo</span>'}</div>`;
 }
 async function loadMoreProducts() {
   const sequence = state.sequence;
@@ -414,11 +465,19 @@ function renderReceiving() {
   main.innerHTML =
     pageHeader(
       'RECEBIMENTO DE MERCADORIAS',
-      'Registrar entrada',
-      'Leia o código do produto e confirme a entrada no galpão selecionado.',
+      isPreview ? 'Conheça o recebimento' : 'Registrar entrada',
+      isPreview
+        ? 'Teste a consulta por código e explore o formulário, sem registrar entradas.'
+        : 'Leia o código do produto e confirme a entrada no galpão selecionado.',
     ) +
     `<div class="split-layout"><section class="panel"><div class="panel-header"><div><h2>Nova entrada · ${esc(state.warehouseId || 'Selecione um galpão')}</h2><p>${esc(warehouseName())}</p></div><span class="badge badge-neutral">${icon('receive')} Recebimento</span></div><div class="panel-body" id="receiving-form-area"></div></section><aside class="panel receiving-guide"><div class="guide"><div class="guide-icon">${icon('barcode')}</div><h2>Do código ao registro</h2><p>Use a câmera, um leitor conectado ou digite o código. Os dados do cadastro são preenchidos automaticamente.</p><ol class="steps"><li>Selecione o galpão que está recebendo os produtos.</li><li>Leia o código e confira o produto localizado.</li><li>Informe a quantidade ou o número de série e confirme.</li></ol><hr class="form-divider"/><p class="section-note">${icon('shield')}Data, horário e usuário ficam registrados na entrada.</p></div></aside></div><section class="panel"><div class="panel-header"><div><h2>Histórico de entradas</h2><p>Acompanhe o processamento e quem registrou cada recebimento</p></div><button id="refresh-history" class="button button-secondary">${icon('refresh')} Atualizar</button></div><div id="history-table"><div class="loading" role="status">Carregando as entradas…</div></div></section>`;
   renderReceiptForm();
+  if (isPreview) {
+    document.querySelector('.receiving-guide .steps li:last-child').textContent =
+      'Confira os campos de quantidade ou número de série. A gravação está desabilitada nesta prévia.';
+    document.querySelector('.receiving-guide .section-note').textContent =
+      'Na operação conectada, data, horário e usuário são registrados em cada entrada.';
+  }
   document.querySelector('#refresh-history').addEventListener('click', () => loadHistory());
 }
 function renderReceiptForm() {
@@ -460,6 +519,28 @@ function renderReceiptForm() {
     return;
   }
   area.innerHTML = `<div class="scan-box"><div class="scan-heading">${icon('barcode')}<h3>Identifique o produto</h3></div><form id="lookup-form"><label for="scan-code" class="sr-only">Código de barras ou SKU</label><div class="input-row"><input id="scan-code" class="input" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="128" required placeholder="Código de barras ou SKU" value="${esc(product?.barcode || product?.skuId || '')}" /><button type="submit" class="button button-primary" id="lookup-submit">Localizar</button></div></form><div class="scan-buttons"><button type="button" class="button button-secondary" id="open-camera">${icon('camera')} Ler com a câmera</button><button type="button" class="button button-quiet" id="focus-scanner">${icon('barcode')} Usar leitor conectado</button></div><p class="hint">Leitores USB/Bluetooth funcionam como teclado. Leia o código e pressione Enter, se necessário.</p></div><div id="lookup-error" class="alert alert-error" role="alert" hidden></div>${product ? `<div class="found-product"><div><h3>${esc(product.name || product.skuId)}</h3><p>${esc(product.skuId)} · ${product.trackingMode === 'SERIALIZED' ? 'Controle por número de série' : 'Controle por quantidade'}</p></div><span class="badge">Localizado</span></div><form id="receipt-form"><div id="receipt-error" class="alert alert-error" role="alert" hidden></div><div class="form-grid">${product.trackingMode === 'SERIALIZED' ? '<div class="field span-full"><label for="receipt-serial">Número de série da unidade</label><input id="receipt-serial" name="serialNumber" required maxlength="128" autocomplete="off" placeholder="Leia ou digite o número de série"/><p class="hint">O código do produto identifica o modelo. O número de série identifica esta unidade.</p></div>' : '<div class="field"><label for="receipt-quantity">Quantidade recebida</label><input id="receipt-quantity" name="quantity" type="number" min="1" max="1000000" step="1" value="1" required /></div><div class="field"><label for="receipt-lot">Lote <span class="muted small">(opcional)</span></label><input id="receipt-lot" name="lotCode" maxlength="128" placeholder="Ex.: LOTE-001" /></div>'}</div><div class="metadata"><div class="meta-row"><span>Responsável pela entrada</span><strong>${esc(state.user.displayName || state.user.subject)}</strong></div><div class="meta-row"><span>Galpão de destino</span><strong>${esc(warehouseName())}</strong></div><div class="meta-row"><span>Data, hora e referência</span><strong>Preenchidas ao confirmar</strong></div></div><div class="form-actions"><button id="clear-entry" class="button button-secondary" type="button">Limpar</button><button id="save-receipt" class="button button-primary" type="submit">${icon('check')} Confirmar entrada</button></div></form>` : empty('Pronto para receber', 'Leia um código para preencher o produto automaticamente.')}`;
+  if (isPreview) {
+    area.insertAdjacentHTML(
+      'afterbegin',
+      `<div class="preview-notice"><strong>Consulta de demonstração</strong><p>Localize um dos produtos de exemplo. Nenhum recebimento será gravado.</p><div class="preview-examples"><button type="button" class="button button-secondary" data-preview-code="${preview.previewExampleCodes.bulk}">Exemplo por quantidade</button><button type="button" class="button button-secondary" data-preview-code="${preview.previewExampleCodes.serialized}">Exemplo com número de série</button></div><p class="mono">Código de exemplo: ${preview.previewExampleCodes.bulk}</p></div>`,
+    );
+    area
+      .querySelectorAll('[data-preview-code]')
+      .forEach((button) => button.addEventListener('click', () => lookupProduct(button.dataset.previewCode)));
+    area.querySelectorAll('#receipt-form input').forEach((input) => {
+      input.disabled = true;
+    });
+    const save = document.querySelector('#save-receipt');
+    if (save) {
+      save.disabled = true;
+      save.textContent = 'Gravação indisponível na demonstração';
+    }
+    const metadataLabels = area.querySelectorAll('#receipt-form .meta-row');
+    if (metadataLabels.length) {
+      metadataLabels[0].querySelector('span').textContent = 'Perfil ilustrativo';
+      metadataLabels[2].querySelector('strong').textContent = 'Disponíveis na operação conectada';
+    }
+  }
   document.querySelector('#lookup-form').addEventListener('submit', (event) => {
     event.preventDefault();
     lookupProduct(document.querySelector('#scan-code').value.trim());
@@ -476,6 +557,10 @@ function renderReceiptForm() {
   });
   document.querySelector('#receipt-form')?.addEventListener('submit', (event) => {
     event.preventDefault();
+    if (isPreview) {
+      toast(preview.readOnlyMessage);
+      return;
+    }
     if (submitting || state.receipt) return;
     const values = Object.fromEntries(new FormData(event.currentTarget));
     const body = {
@@ -525,8 +610,9 @@ async function lookupProduct(code) {
     state.entryProduct = null;
     renderReceiptForm();
     if (error.status === 404)
-      error.message =
-        'Código não encontrado. Cadastre o produto e vincule o código de barras antes de receber.';
+      error.message = isPreview
+        ? 'Código não encontrado no catálogo de demonstração. Use um dos códigos de exemplo.'
+        : 'Código não encontrado. Cadastre o produto e vincule o código de barras antes de receber.';
     showFailure(error, document.querySelector('#lookup-error'));
     if (error.status === 404 && isAdmin()) {
       const create = document.createElement('button');
@@ -544,6 +630,10 @@ async function lookupProduct(code) {
 }
 let submitting = false;
 async function submitReceipt() {
+  if (isPreview) {
+    toast(preview.readOnlyMessage);
+    return;
+  }
   if (submitting || !state.receipt) return;
   submitting = true;
   const pending = state.receipt;
@@ -665,6 +755,17 @@ async function loadHistory(more = false, sequence = state.sequence) {
   }
 }
 function renderAccount() {
+  if (isPreview) {
+    document.querySelector('#main').innerHTML =
+      pageHeader(
+        'SOBRE ESTA PRÉVIA',
+        'Uma visita à interface',
+        'Explore o Armazém sem criar uma conta ou informar dados pessoais.',
+      ) +
+      `<section class="panel account-card"><div class="panel-header"><div><h2>Visitante da demonstração</h2><p>Este perfil é ilustrativo e não representa uma sessão autenticada.</p></div><span class="avatar">VI</span></div><div class="panel-body"><div class="preview-notice"><strong>Demonstração · dados fictícios · somente leitura</strong><p>Os produtos, saldos, responsáveis e recebimentos existem apenas para apresentar a interface. Nenhum dado é enviado a uma API ou salvo no navegador.</p></div><h3>O que você pode explorar</h3><p class="muted">Consulte o estoque dos 16 galpões, navegue pelo catálogo, veja o histórico de exemplo e experimente a identificação por código. A câmera é opcional e processa a imagem no próprio navegador.</p><h3>Quando a operação for conectada</h3><p class="muted">Login e senha, cadastro de produtos, registro de entradas e autoria estarão disponíveis com o backend AWS. Essas funções estão desabilitadas nesta publicação.</p><button id="preview-return-stock" class="button button-primary" type="button">${icon('stock')} Voltar ao estoque de exemplo</button></div></section>`;
+    document.querySelector('#preview-return-stock').addEventListener('click', () => navigate('stock'));
+    return;
+  }
   document.querySelector('#main').innerHTML =
     pageHeader(
       'ACESSO E IDENTIFICAÇÃO',
@@ -731,8 +832,11 @@ document.addEventListener('visibilitychange', () => {
   if (document.hidden) closeCamera();
 });
 
-try {
-  await startSession();
-} catch (error) {
-  renderLogin(error.status === 401 ? '' : error.message);
+if (isPreview) renderPreviewLanding();
+else {
+  try {
+    await startSession();
+  } catch (error) {
+    renderLogin(error.status === 401 ? '' : error.message);
+  }
 }

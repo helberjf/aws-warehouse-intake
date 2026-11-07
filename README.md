@@ -36,6 +36,14 @@ flowchart LR
 
 One container image runs three independent roles. SQS delivery is at least once; conditional DynamoDB transactions enforce one stock effect per movement. Standard-queue warehouse groups enable AWS fair-queue scheduling without global FIFO ordering. See [architecture](docs/architecture.md) and [data model](docs/data-model.md).
 
+## Publish frontend on Vercel
+
+The repository includes a **static, read-only demonstration** with 16 fictional warehouses, 8 products, example stock/history and camera or USB barcode lookup. It requires no AWS account, environment variables, username or password. Product registration, receiving submissions and real authentication are disabled; demonstration data is not persisted.
+
+Import this repository into Vercel. The committed configuration selects **Other**, installs with `npm ci`, builds with `npm run build:frontend`, and publishes only `dist/frontend`, using Node.js 24. Preview it locally with `npm ci` followed by `npm run preview:frontend`, then open http://127.0.0.1:4173. See the [Vercel guide](docs/vercel.md) for deployment steps, browser tests and the future AWS connection requirements.
+
+This configuration does not deploy the AWS backend or establish a live Vercel URL. The connected Docker application below retains real login and receiving behavior.
+
 ## Run locally
 
 Install Node.js 24 and Docker with Compose. From PowerShell:

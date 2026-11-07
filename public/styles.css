@@ -731,6 +731,7 @@ h3 {
   height: 43px;
 }
 .table-scroll {
+  position: relative;
   overflow: auto;
 }
 table {
@@ -1182,6 +1183,76 @@ dialog::backdrop {
 }
 .login-mobile-brand {
   display: none;
+}
+.preview-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 12px 20px;
+  background: #f5edda;
+  border-bottom: 1px solid #e6d8b7;
+  color: #725c29;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.5;
+  text-align: center;
+}
+.preview-banner svg {
+  width: 16px;
+  height: 16px;
+}
+.preview-mode .status-dot {
+  background: #b28f45;
+}
+.preview-mode .session-tag {
+  color: #8b733f;
+}
+.preview-landing-note {
+  border-top: 1px solid var(--line);
+  margin-top: 27px;
+  padding-top: 22px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+.preview-landing-note strong {
+  color: #42624d;
+  font-weight: 600;
+}
+.preview-landing-note p {
+  margin: 8px 0 0;
+}
+.preview-notice {
+  background: #f8f5eb;
+  border: 1px solid #e7dfc8;
+  border-radius: 10px;
+  padding: 16px;
+  color: #77643a;
+  margin-bottom: 23px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.preview-notice strong {
+  color: #715f32;
+  font-weight: 650;
+}
+.preview-notice p {
+  margin: 6px 0 0;
+}
+.preview-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 13px;
+}
+.preview-examples .button {
+  padding: 8px 10px;
+  min-height: 38px;
+  font-size: 11px;
+}
+.preview-mode .form-actions .button:disabled {
+  opacity: 0.75;
 }
 @media (min-width: 1500px) {
   .content {

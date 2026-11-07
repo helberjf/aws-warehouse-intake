@@ -31,7 +31,11 @@
     "costs": "node scripts/estimate-cost.ts",
     "test:load:warehouses": "node --env-file=.env scripts/warehouse-load.ts",
     "test:load:monitor": "node --env-file=.env scripts/load-monitor.ts",
-    "test:load:audit": "node --env-file=.env scripts/audit-load.ts"
+    "test:load:audit": "node --env-file=.env scripts/audit-load.ts",
+    "build:frontend": "node scripts/build-frontend.ts",
+    "prepreview:frontend": "npm run build:frontend",
+    "preview:frontend": "node scripts/preview-frontend.ts",
+    "test:frontend": "playwright test --config playwright.frontend.config.ts"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1162.0",
